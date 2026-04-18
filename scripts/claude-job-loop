@@ -1,0 +1,327 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROMPT_FILE="$ROOT/JOB.md"
+DELAY_SECONDS="${DELAY_SECONDS:-0}"
+MAX_RUNS="${MAX_RUNS:-0}"
+CONTINUE_ON_ERROR="${CONTINUE_ON_ERROR:-0}"
+WAIT_ON_LIMIT="${WAIT_ON_LIMIT:-1}"
+WAIT_FALLBACK_SECONDS="${WAIT_FALLBACK_SECONDS:-900}"
+WAIT_BUFFER_SECONDS="${WAIT_BUFFER_SECONDS:-60}"
+LOG_DIR="${LOG_DIR:-$ROOT/.logs/claude-job-loop}"
+LOG_FILE="${LOG_FILE:-}"
+
+usage() {
+  cat <<'EOF'
+Użycie:
+  ./scripts/claude-job-loop [--prompt PLIK] [--delay SEKUNDY] [--max-runs N]
+                            [--continue-on-error] [--no-wait-on-limit]
+                            [--wait-fallback SEKUNDY] [--wait-buffer SEKUNDY]
+                            [--log-dir KATALOG] [--log-file PLIK]
+  ./scripts/claude-job-loop [--help]
+
+Opis:
+  W pętli uruchamia `claude -p "<treść pliku>"`.
+  Po każdej iteracji ponownie wczytuje plik promptu, więc zmiany w `JOB.md`
+  są brane pod uwagę bez restartu skryptu.
+
+  Gdy Claude zwróci komunikat o wyczerpaniu limitu i poda czas resetu,
+  skrypt może poczekać do resetu i ponowić próbę. `--max-runs` liczy tylko
+  udane przebiegi, więc limit nie zjada dostępnych iteracji.
+
+Opcje:
+  --prompt PLIK           Plik z promptem. Domyślnie: ./JOB.md
+  --delay SEKUNDY         Pauza między udanymi uruchomieniami. Domyślnie: 0
+  --max-runs N            Maksymalna liczba udanych iteracji. 0 = bez limitu
+  --continue-on-error     Nie przerywaj pętli po zwykłym błędzie komendy
+  --no-wait-on-limit      Wyłącz automatyczne czekanie na reset limitu
+  --wait-fallback N       Awaryjny czas czekania, gdy nie da się sparsować resetu
+  --wait-buffer N         Bufor dodawany do czasu resetu. Domyślnie: 60
+  --log-dir KATALOG       Katalog logów. Domyślnie: ./.logs/claude-job-loop
+  --log-file PLIK         Konkretny plik logu. Domyślnie: timestamp w log-dir
+  --help                  Pokaż pomoc
+
+Zmienne środowiskowe:
+  DELAY_SECONDS           To samo co --delay
+  MAX_RUNS                To samo co --max-runs
+  CONTINUE_ON_ERROR       1 = kontynuuj po błędzie, 0 = przerwij
+  WAIT_ON_LIMIT           1 = czekaj na reset limitu, 0 = nie czekaj
+  WAIT_FALLBACK_SECONDS   To samo co --wait-fallback
+  WAIT_BUFFER_SECONDS     To samo co --wait-buffer
+  LOG_DIR                 To samo co --log-dir
+  LOG_FILE                To samo co --log-file
+EOF
+}
+
+die() {
+  echo "error: $*" >&2
+  exit 1
+}
+
+is_non_negative_integer() {
+  [[ "$1" =~ ^[0-9]+$ ]]
+}
+
+trim() {
+  local value="$1"
+  value="${value#"${value%%[![:space:]]*}"}"
+  value="${value%"${value##*[![:space:]]}"}"
+  printf '%s' "$value"
+}
+
+log() {
+  local message="$1"
+  printf '%s\n' "$message" | tee -a "$LOG_FILE"
+}
+
+parse_epoch() {
+  local candidate="$1"
+  date --date="$candidate" +%s 2>/dev/null
+}
+
+seconds_until_candidate() {
+  local candidate="$1"
+  local now epoch
+
+  now="$(date +%s)"
+
+  if epoch="$(parse_epoch "$candidate")"; then
+    if [[ "$epoch" -gt "$now" ]]; then
+      echo $((epoch - now + WAIT_BUFFER_SECONDS))
+      return 0
+    fi
+  fi
+
+  if epoch="$(parse_epoch "tomorrow $candidate")"; then
+    if [[ "$epoch" -gt "$now" ]]; then
+      echo $((epoch - now + WAIT_BUFFER_SECONDS))
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
+extract_wait_seconds() {
+  local output="$1"
+  local line candidate
+
+  while IFS= read -r line; do
+    if [[ "$line" =~ [Rr]etry-?[[:space:]]?[Aa]fter[^0-9]*([0-9]+) ]]; then
+      echo $((BASH_REMATCH[1] + WAIT_BUFFER_SECONDS))
+      return 0
+    fi
+  done <<< "$output"
+
+  while IFS= read -r line; do
+    if [[ "$line" =~ [Rr]esets?([[:space:]]+at)?[[:space:]]+(.+) ]]; then
+      candidate="${BASH_REMATCH[2]}"
+      candidate="${candidate%% - continuing with extra usage*}"
+      candidate="${candidate%%|*}"
+      candidate="${candidate%%$'\r'*}"
+      candidate="${candidate%%$'\n'*}"
+      candidate="$(trim "$candidate")"
+      candidate="${candidate%.}"
+      candidate="${candidate%,}"
+
+      if [[ -n "$candidate" ]] && seconds_until_candidate "$candidate" >/dev/null; then
+        seconds_until_candidate "$candidate"
+        return 0
+      fi
+    fi
+  done <<< "$output"
+
+  if grep -Eiq '(usage limit|rate limit|limit reached|429)' <<< "$output"; then
+    echo "$WAIT_FALLBACK_SECONDS"
+    return 0
+  fi
+
+  return 1
+}
+
+looks_like_limit_error() {
+  local output="$1"
+  grep -Eiq '(usage limit|rate limit|limit reached|retry-after|429|resets? at|resets? )' <<< "$output"
+}
+
+sleep_until_retry() {
+  local total_seconds="$1"
+  local reason="$2"
+  local remaining chunk resume_at
+
+  remaining="$total_seconds"
+  resume_at="$(date --date="+${total_seconds} seconds" '+%Y-%m-%d %H:%M:%S')"
+
+  log "$reason"
+  log "Wznowienie nie wcześniej niż: $resume_at"
+
+  while [[ "$remaining" -gt 0 ]]; do
+    if [[ "$stop_requested" -eq 1 ]]; then
+      return 1
+    fi
+
+    chunk=60
+    if [[ "$remaining" -lt "$chunk" ]]; then
+      chunk="$remaining"
+    fi
+
+    sleep "$chunk" || true
+    remaining=$((remaining - chunk))
+  done
+
+  return 0
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --prompt)
+      [[ $# -ge 2 ]] || die "brakuje wartości dla --prompt"
+      PROMPT_FILE="$2"
+      shift 2
+      ;;
+    --delay)
+      [[ $# -ge 2 ]] || die "brakuje wartości dla --delay"
+      DELAY_SECONDS="$2"
+      shift 2
+      ;;
+    --max-runs)
+      [[ $# -ge 2 ]] || die "brakuje wartości dla --max-runs"
+      MAX_RUNS="$2"
+      shift 2
+      ;;
+    --continue-on-error)
+      CONTINUE_ON_ERROR=1
+      shift
+      ;;
+    --no-wait-on-limit)
+      WAIT_ON_LIMIT=0
+      shift
+      ;;
+    --wait-fallback)
+      [[ $# -ge 2 ]] || die "brakuje wartości dla --wait-fallback"
+      WAIT_FALLBACK_SECONDS="$2"
+      shift 2
+      ;;
+    --wait-buffer)
+      [[ $# -ge 2 ]] || die "brakuje wartości dla --wait-buffer"
+      WAIT_BUFFER_SECONDS="$2"
+      shift 2
+      ;;
+    --log-dir)
+      [[ $# -ge 2 ]] || die "brakuje wartości dla --log-dir"
+      LOG_DIR="$2"
+      shift 2
+      ;;
+    --log-file)
+      [[ $# -ge 2 ]] || die "brakuje wartości dla --log-file"
+      LOG_FILE="$2"
+      shift 2
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      die "nieznana opcja: $1"
+      ;;
+  esac
+done
+
+[[ -f "$PROMPT_FILE" ]] || die "nie znaleziono pliku promptu: $PROMPT_FILE"
+is_non_negative_integer "$DELAY_SECONDS" || die "--delay musi być liczbą >= 0"
+is_non_negative_integer "$MAX_RUNS" || die "--max-runs musi być liczbą >= 0"
+is_non_negative_integer "$WAIT_FALLBACK_SECONDS" || die "--wait-fallback musi być liczbą >= 0"
+is_non_negative_integer "$WAIT_BUFFER_SECONDS" || die "--wait-buffer musi być liczbą >= 0"
+[[ "$CONTINUE_ON_ERROR" == "0" || "$CONTINUE_ON_ERROR" == "1" ]] || die "CONTINUE_ON_ERROR musi być równe 0 albo 1"
+[[ "$WAIT_ON_LIMIT" == "0" || "$WAIT_ON_LIMIT" == "1" ]] || die "WAIT_ON_LIMIT musi być równe 0 albo 1"
+
+if [[ -z "$LOG_FILE" ]]; then
+  LOG_FILE="$LOG_DIR/$(date '+%Y%m%d-%H%M%S').log"
+fi
+
+mkdir -p "$(dirname "$LOG_FILE")"
+touch "$LOG_FILE"
+
+stop_requested=0
+attempt_count=0
+completed_runs=0
+
+on_interrupt() {
+  stop_requested=1
+  printf '\n' | tee -a "$LOG_FILE" >/dev/null
+  log "Odebrano sygnał przerwania. Zatrzymuję pętlę po bieżącej operacji..."
+}
+
+trap on_interrupt INT TERM
+
+log "Start runnera. Log file: $LOG_FILE"
+
+while :; do
+  if [[ "$MAX_RUNS" -gt 0 && "$completed_runs" -ge "$MAX_RUNS" ]]; then
+    log "Osiągnięto limit udanych iteracji: $MAX_RUNS"
+    break
+  fi
+
+  if [[ "$stop_requested" -eq 1 ]]; then
+    break
+  fi
+
+  attempt_count=$((attempt_count + 1))
+  started_at="$(date '+%Y-%m-%d %H:%M:%S')"
+  prompt="$(<"$PROMPT_FILE")"
+
+  if [[ -z "$prompt" ]]; then
+    die "plik promptu jest pusty: $PROMPT_FILE"
+  fi
+
+  log "[$started_at] Start próby #$attempt_count, celowana udana iteracja #$((completed_runs + 1)) z promptu: $PROMPT_FILE"
+
+  tmp_output="$(mktemp)"
+  set +e
+  claude -p "$prompt" 2>&1 | tee -a "$LOG_FILE" "$tmp_output"
+  exit_code=${PIPESTATUS[0]}
+  set -e
+
+  finished_at="$(date '+%Y-%m-%d %H:%M:%S')"
+  log "[$finished_at] Koniec próby #$attempt_count, exit code: $exit_code"
+
+  if [[ "$exit_code" -eq 0 ]]; then
+    completed_runs=$((completed_runs + 1))
+    rm -f "$tmp_output"
+
+    if [[ "$stop_requested" -eq 1 ]]; then
+      break
+    fi
+
+    if [[ "$DELAY_SECONDS" -gt 0 ]]; then
+      log "Czekam ${DELAY_SECONDS}s przed następną udaną iteracją..."
+      sleep_until_retry "$DELAY_SECONDS" "Pauza między iteracjami..."
+    fi
+
+    continue
+  fi
+
+  output="$(<"$tmp_output")"
+  rm -f "$tmp_output"
+
+  if [[ "$WAIT_ON_LIMIT" -eq 1 ]] && looks_like_limit_error "$output"; then
+    if wait_seconds="$(extract_wait_seconds "$output")"; then
+      if sleep_until_retry "$wait_seconds" "Wykryto limit użycia Claude. Czekam na reset i ponawiam tę samą iterację..."; then
+        continue
+      fi
+      break
+    fi
+  fi
+
+  if [[ "$CONTINUE_ON_ERROR" -eq 1 ]]; then
+    log "Komenda zakończyła się błędem, ale \`--continue-on-error\` jest aktywne. Przechodzę do następnej próby."
+    continue
+  fi
+
+  log "Przerywam po błędzie. Ustaw --continue-on-error, jeśli pętla ma iść dalej."
+  exit "$exit_code"
+done
+
+log "Pętla zakończona. Udane iteracje: $completed_runs, wszystkie próby: $attempt_count."

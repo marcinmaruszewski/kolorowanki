@@ -1,0 +1,29 @@
+# dependencies
+node_modules/
+
+# build artifacts
+.next/
+dist/
+build/
+
+# logs
+*.log
+
+# env files
+.env
+.env.local
+
+# local media storage
+media/
+
+# OS junk
+.DS_Store
+
+# test artifacts
+coverage/
+playwright-report/
+test-results/
+
+# local agent state
+.codex
+.logs/

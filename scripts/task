@@ -1,0 +1,394 @@
+#!/usr/bin/env bash
+# Kalendarz — task helper
+# Commands:
+#   ./scripts/task list              # print table of all tasks
+#   ./scripts/task context <id>      # print OVERVIEW + PRD + ADR + AGENTS + task + deps
+#   ./scripts/task verify <id>       # run verify for 001..id (regression)
+#   ./scripts/task done <id>         # mark task as done + auto-commit
+#   ./scripts/task show <id>         # print just the task file
+#
+# Host dependencies: bash, awk, sed, grep, find, git. No Node required.
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TASKS_DIR="$ROOT/tasks"
+DOCS_DIR="$ROOT/docs"
+VERIFY_DIR="$TASKS_DIR/verify"
+
+RED=$'\033[31m'
+GREEN=$'\033[32m'
+YELLOW=$'\033[33m'
+BLUE=$'\033[34m'
+BOLD=$'\033[1m'
+RESET=$'\033[0m'
+
+die() {
+  echo "${RED}error:${RESET} $*" >&2
+  exit 1
+}
+
+find_task_file() {
+  local id="$1"
+  local match
+  match=$(find "$TASKS_DIR" -maxdepth 1 -name "${id}-*.md" -type f 2>/dev/null | head -n1)
+  [[ -n "$match" ]] || die "no task file matching id ${id} in ${TASKS_DIR}"
+  echo "$match"
+}
+
+# Extract scalar frontmatter field: `key: value`
+fm_field() {
+  local file="$1" key="$2"
+  awk -v key="$key" '
+    BEGIN { in_fm = 0 }
+    /^---[[:space:]]*$/ { in_fm++ ; next }
+    in_fm == 1 && $0 ~ "^"key":" {
+      sub("^"key":[[:space:]]*", "")
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "")
+      print
+      exit
+    }
+    in_fm == 2 { exit }
+  ' "$file"
+}
+
+# Extract inline array: `key: [a, b]` → space-separated values
+fm_array_inline() {
+  local file="$1" key="$2"
+  fm_field "$file" "$key" \
+    | sed -e 's/^\[//' -e 's/\]$//' -e 's/,/ /g' \
+    | tr -s ' '
+}
+
+# Extract block-style array:
+#   key:
+#     - value1
+#     - value2
+fm_array_block() {
+  local file="$1" key="$2"
+  awk -v key="$key" '
+    BEGIN { in_fm = 0; in_key = 0 }
+    /^---[[:space:]]*$/ { in_fm++; next }
+    in_fm != 1 { next }
+    !in_key && $0 ~ "^"key":[[:space:]]*$" { in_key = 1; next }
+    in_key {
+      if ($0 ~ /^[[:space:]]+-[[:space:]]/) {
+        sub(/^[[:space:]]+-[[:space:]]+/, "")
+        gsub(/^[[:space:]]+|[[:space:]]+$/, "")
+        print
+      } else if ($0 ~ /^[^[:space:]]/) {
+        in_key = 0
+      }
+    }
+  ' "$file"
+}
+
+status_of()  { fm_field "$1" "status"; }
+title_of()   { fm_field "$1" "title"; }
+type_of()    { fm_field "$1" "type"; }
+depends_of() { fm_array_inline "$1" "depends_on"; }
+touches_of() { fm_array_block "$1" "touches"; }
+
+# ─── list ────────────────────────────────────────────────────────────
+
+cmd_list() {
+  printf "%-5s %-8s %-52s %-12s %s\n" "ID" "Type" "Tytuł" "Status" "Depends on"
+  printf "%-5s %-8s %-52s %-12s %s\n" "---" "-----" "-------------------------------------------------" "---------" "----------"
+  for f in "$TASKS_DIR"/[0-9][0-9][0-9]-*.md; do
+    [[ -f "$f" ]] || continue
+    local id type title status deps
+    id=$(fm_field "$f" "id")
+    type=$(type_of "$f")
+    title=$(title_of "$f")
+    status=$(status_of "$f")
+    deps=$(depends_of "$f" | sed 's/ /, /g')
+    local color="$RESET"
+    case "$status" in
+      done) color="$GREEN" ;;
+      in-progress) color="$YELLOW" ;;
+    esac
+    printf "%-5s %-8s %-52.52s ${color}%-12s${RESET} %s\n" "$id" "$type" "$title" "$status" "$deps"
+  done
+}
+
+# ─── show ────────────────────────────────────────────────────────────
+
+cmd_show() {
+  local id="$1"
+  cat "$(find_task_file "$id")"
+}
+
+# ─── context ─────────────────────────────────────────────────────────
+
+transitive_deps() {
+  local id="$1"
+  local file
+  file=$(find_task_file "$id")
+  local all=""
+  for dep in $(depends_of "$file"); do
+    all="$all $dep"
+    all="$all $(transitive_deps "$dep")"
+  done
+  echo "$all" | tr ' ' '\n' | grep -v '^$' | sort -u
+}
+
+cmd_context() {
+  local id="$1"
+  local file
+  file=$(find_task_file "$id")
+
+  echo "${BOLD}${BLUE}# ========================================${RESET}"
+  echo "${BOLD}${BLUE}# CONTEXT FOR TASK ${id}${RESET}"
+  echo "${BOLD}${BLUE}# ========================================${RESET}"
+  echo ""
+
+  for doc in OVERVIEW.md PRD.md ADR.md AGENTS.md; do
+    if [[ -f "$DOCS_DIR/$doc" ]]; then
+      echo "${BOLD}${BLUE}### docs/$doc${RESET}"
+      echo ""
+      cat "$DOCS_DIR/$doc"
+      echo ""
+      echo ""
+    fi
+  done
+
+  local deps
+  deps=$(transitive_deps "$id")
+  if [[ -n "$deps" ]]; then
+    echo "${BOLD}${BLUE}### Dependency tasks (transitive)${RESET}"
+    echo ""
+    for dep in $deps; do
+      local dep_file
+      dep_file=$(find_task_file "$dep")
+      echo "${BOLD}--- tasks/$(basename "$dep_file") ---${RESET}"
+      cat "$dep_file"
+      echo ""
+      echo ""
+    done
+  fi
+
+  echo "${BOLD}${BLUE}### >>> CURRENT TASK: $(basename "$file") <<<${RESET}"
+  echo ""
+  cat "$file"
+}
+
+# ─── verify ──────────────────────────────────────────────────────────
+
+run_verify_script() {
+  local id="$1"
+  local script="$VERIFY_DIR/${id}.sh"
+  if [[ -x "$script" ]]; then
+    echo "${BLUE}→ running $script${RESET}"
+    (cd "$ROOT" && bash "$script")
+    return $?
+  elif [[ -f "$script" ]]; then
+    echo "${YELLOW}warning: $script exists but is not executable — chmod +x it${RESET}" >&2
+    return 1
+  else
+    echo "${YELLOW}  (no verify script at $script — skipping automated check)${RESET}"
+    return 0
+  fi
+}
+
+print_manual_checklist() {
+  local file="$1"
+  awk '
+    /^## Weryfikacja manualna[[:space:]]*$/ { in_sec = 1; print; next }
+    /^## / && in_sec { exit }
+    in_sec { print }
+  ' "$file"
+}
+
+cmd_verify() {
+  local target_id="$1"
+  local target_file
+  target_file=$(find_task_file "$target_id")
+
+  local ordered=()
+  for f in "$TASKS_DIR"/[0-9][0-9][0-9]-*.md; do
+    [[ -f "$f" ]] || continue
+    local id
+    id=$(fm_field "$f" "id")
+    if [[ "$id" < "$target_id" || "$id" == "$target_id" ]]; then
+      ordered+=("$id")
+    fi
+  done
+
+  local failed=0
+  for id in "${ordered[@]}"; do
+    local file
+    file=$(find_task_file "$id")
+    local status
+    status=$(status_of "$file")
+    if [[ "$id" != "$target_id" && "$status" != "done" ]]; then
+      continue
+    fi
+    echo ""
+    echo "${BOLD}▶ verify task ${id} — $(title_of "$file")${RESET}"
+    if ! run_verify_script "$id"; then
+      echo "${RED}✘ task ${id} verification FAILED${RESET}"
+      failed=1
+      break
+    fi
+  done
+
+  if [[ $failed -ne 0 ]]; then
+    exit 1
+  fi
+
+  echo ""
+  echo "${GREEN}✓ automated verification passed${RESET}"
+  echo ""
+  echo "${BOLD}Ręczna checklista (task ${target_id}):${RESET}"
+  print_manual_checklist "$target_file"
+}
+
+# ─── done (flip status + auto commit) ────────────────────────────────
+
+regenerate_status() {
+  local out="$TASKS_DIR/STATUS.md"
+  {
+    echo "# Status tasków"
+    echo ""
+    echo "Autogenerowane przez \`./scripts/task list\` i aktualizowane przez \`./scripts/task done <id>\`. Nie edytuj ręcznie."
+    echo ""
+    echo "| ID  | Tytuł                                               | Status       | Depends on |"
+    echo "| --- | --------------------------------------------------- | ------------ | ---------- |"
+    for f in "$TASKS_DIR"/[0-9][0-9][0-9]-*.md; do
+      [[ -f "$f" ]] || continue
+      local id title status deps
+      id=$(fm_field "$f" "id")
+      title=$(title_of "$f")
+      status=$(status_of "$f")
+      deps=$(depends_of "$f" | sed 's/ /, /g')
+      printf "| %-3s | %-51.51s | %-12s | %-10s |\n" "$id" "$title" "$status" "$deps"
+    done
+  } > "$out"
+}
+
+flip_status_to_done() {
+  local file="$1"
+  awk '
+    BEGIN { in_fm = 0; flipped = 0 }
+    /^---[[:space:]]*$/ { in_fm++; print; next }
+    in_fm == 1 && !flipped && /^status:/ {
+      print "status: done"
+      flipped = 1
+      next
+    }
+    { print }
+  ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+}
+
+cmd_done() {
+  local id="$1"
+  local file
+  file=$(find_task_file "$id")
+
+  # Sanity: must be a git repo.
+  if ! git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    die "not a git repo — task 001 should have run \`git init\`. Run it and retry."
+  fi
+
+  local current_status
+  current_status=$(status_of "$file")
+  if [[ "$current_status" == "done" ]]; then
+    echo "${YELLOW}task ${id} is already done${RESET}"
+    return 0
+  fi
+
+  local type title
+  type=$(type_of "$file")
+  title=$(title_of "$file")
+  [[ -n "$type" ]]  || die "task ${id} missing \`type:\` in frontmatter"
+  [[ -n "$title" ]] || die "task ${id} missing \`title:\` in frontmatter"
+
+  # 1. Flip status in task file.
+  flip_status_to_done "$file"
+  # 2. Regenerate STATUS.md.
+  regenerate_status
+
+  # 3. Stage: task file, STATUS.md, everything in `touches`, plus pnpm-lock.yaml if modified.
+  local to_add=("$file" "$TASKS_DIR/STATUS.md")
+  while IFS= read -r touched; do
+    [[ -z "$touched" ]] && continue
+    local full="$ROOT/$touched"
+    if [[ -e "$full" ]]; then
+      to_add+=("$full")
+    else
+      # Pattern or missing file — warn but continue (agent may have removed something intentionally).
+      echo "${YELLOW}  note: touches entry does not exist on disk: $touched${RESET}"
+    fi
+  done < <(touches_of "$file")
+
+  # pnpm-lock.yaml auto-include if modified and not already listed
+  if [[ -f "$ROOT/pnpm-lock.yaml" ]] && git -C "$ROOT" diff --quiet -- pnpm-lock.yaml || ! git -C "$ROOT" diff --quiet -- pnpm-lock.yaml 2>/dev/null; then
+    if ! git -C "$ROOT" diff --quiet -- pnpm-lock.yaml 2>/dev/null; then
+      to_add+=("$ROOT/pnpm-lock.yaml")
+    fi
+  fi
+
+  git -C "$ROOT" add -- "${to_add[@]}"
+
+  # 4. Guard: anything left unstaged (modified/untracked) outside of our scope?
+  local leftover
+  leftover=$(git -C "$ROOT" status --porcelain | grep -vE '^[MARCDU]  ' || true)
+  if [[ -n "$leftover" ]]; then
+    echo ""
+    echo "${RED}✘ refusing to commit — these files are changed but not in \`touches\`:${RESET}"
+    echo "$leftover" | sed 's/^/    /'
+    echo ""
+    echo "${YELLOW}options:${RESET}"
+    echo "  1. add them to \`touches\` in tasks/$(basename "$file") and re-run \`./scripts/task done ${id}\`"
+    echo "  2. revert them if they don't belong to this task: git checkout -- <file>"
+    echo "  3. stash for later: git stash push -- <file>"
+    # Revert the status flip + STATUS.md regen so the task can be done cleanly after fix.
+    git -C "$ROOT" reset HEAD -- "$file" "$TASKS_DIR/STATUS.md" >/dev/null 2>&1 || true
+    git -C "$ROOT" checkout -- "$file" "$TASKS_DIR/STATUS.md" >/dev/null 2>&1 || true
+    exit 1
+  fi
+
+  # 5. Commit.
+  local msg_title="${type}(task-${id}): ${title}"
+  local msg_body="Closes task ${id}.\n\nVerify: ./scripts/task verify ${id}"
+
+  git -C "$ROOT" commit -m "$msg_title" -m "$(printf '%b' "$msg_body")" >/dev/null
+
+  local sha
+  sha=$(git -C "$ROOT" rev-parse --short HEAD)
+  echo "${GREEN}✓ marked task ${id} as done${RESET}"
+  echo "${GREEN}✓ committed as ${sha}: ${msg_title}${RESET}"
+}
+
+# ─── main ────────────────────────────────────────────────────────────
+
+usage() {
+  cat <<EOF
+Kalendarz task helper.
+
+Usage:
+  ./scripts/task list
+  ./scripts/task show <id>
+  ./scripts/task context <id>
+  ./scripts/task verify <id>
+  ./scripts/task done <id>
+
+<id> is a 3-digit task id (e.g. 001, 042).
+EOF
+  exit 1
+}
+
+main() {
+  local cmd="${1:-}"
+  case "$cmd" in
+    list) cmd_list ;;
+    show) [[ $# -ge 2 ]] || usage; cmd_show "$2" ;;
+    context) [[ $# -ge 2 ]] || usage; cmd_context "$2" ;;
+    verify) [[ $# -ge 2 ]] || usage; cmd_verify "$2" ;;
+    done) [[ $# -ge 2 ]] || usage; cmd_done "$2" ;;
+    -h|--help|help|"") usage ;;
+    *) die "unknown command: $cmd (try --help)" ;;
+  esac
+}
+
+main "$@"
