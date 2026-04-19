@@ -5,7 +5,7 @@ Autogenerowane przez `./scripts/task list` i aktualizowane przez `./scripts/task
 | ID  | Tytuł                                               | Status       | Depends on |
 | --- | --------------------------------------------------- | ------------ | ---------- |
 | 001 | Zainicjalizuj repozytorium i pliki bazowe           | done         |            |
-| 002 | Utwórz package.json i tsconfig bazowy (bez instala | pending      | 001        |
+| 002 | Utwórz package.json i tsconfig bazowy (bez instala | done         | 001        |
 | 003 | Postaw Postgres i Redis przez docker-compose        | pending      | 001        |
 | 004 | Skonteneryzuj aplikację (Dockerfile + usługa app  | pending      | 002, 003   |
 | 005 | Zainstaluj Payload v3 + Next.js w kontenerze        | pending      | 004        |

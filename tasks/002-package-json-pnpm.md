@@ -2,12 +2,13 @@
 id: 002
 title: Utwórz package.json i tsconfig bazowy (bez instalacji)
 type: chore
-status: pending
+status: done
 depends_on: [001]
 touches:
   - package.json
   - .npmrc
   - tsconfig.json
+  - tasks/verify/002.sh
 ---
 
 ## Cel
