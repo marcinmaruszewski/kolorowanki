@@ -2,7 +2,7 @@
 id: 001
 title: Zainicjalizuj repozytorium i pliki bazowe
 type: chore
-status: pending
+status: done
 depends_on: []
 touches:
   - .gitignore
@@ -10,6 +10,7 @@ touches:
   - .nvmrc
   - README.md
   - LICENSE
+  - tasks/verify/001.sh
 ---
 
 ## Cel
