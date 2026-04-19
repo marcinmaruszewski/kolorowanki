@@ -4,6 +4,7 @@ import { buildConfig } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { Users } from './payload/collections/users'
+import { resetMonthlyQuotasIfFirstOfMonth } from './jobs/quota-reset-cron'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -19,5 +20,30 @@ export default buildConfig({
   editor: lexicalEditor({}),
   typescript: {
     outputFile: path.resolve(__dirname, 'payload-types.ts'),
+  },
+  jobs: {
+    tasks: [
+      {
+        slug: 'quota-reset',
+        handler: async ({ req }) => {
+          await resetMonthlyQuotasIfFirstOfMonth(req.payload)
+          return { output: {} }
+        },
+        inputSchema: [],
+        outputSchema: [],
+        schedule: [
+          {
+            cron: '5 0 * * *',
+            queue: 'default',
+          },
+        ],
+      },
+    ],
+    autoRun: [
+      {
+        cron: '5 0 * * *',
+        queue: 'default',
+      },
+    ],
   },
 })

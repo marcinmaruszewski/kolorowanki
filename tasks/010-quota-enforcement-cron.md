@@ -2,12 +2,15 @@
 id: 010
 title: Egzekwuj limit 1 kalendarza/miesiąc + cron reset
 type: feat
-status: pending
+status: done
 depends_on: [009]
 touches:
   - src/payload/hooks/enforce-calendar-quota.ts
   - src/jobs/quota-reset-cron.ts
   - src/payload.config.ts
+  - src/payload-types.ts
+  - tasks/verify/010.sh
+  - tests/task-010/quota.test.ts
 ---
 
 ## Cel
