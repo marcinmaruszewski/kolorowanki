@@ -2,13 +2,14 @@
 id: 015
 title: Skonfiguruj klienta OpenAI i env vars
 type: feat
-status: pending
+status: done
 depends_on: [005]
 touches:
   - package.json
   - pnpm-lock.yaml
   - src/lib/openai/client.ts
   - .env.example
+  - tasks/verify/015.sh
 ---
 
 ## Cel
