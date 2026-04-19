@@ -11,7 +11,8 @@
     "build": "next build",
     "start": "next start",
     "generate:types": "payload generate:types",
-    "test": "vitest run"
+    "test": "vitest run",
+    "worker": "tsx src/jobs/worker-entry.ts"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "^3.83.0",
@@ -32,6 +33,7 @@
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "tsx": "^4.21.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.4"
   }

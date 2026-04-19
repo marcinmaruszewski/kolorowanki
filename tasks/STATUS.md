@@ -23,7 +23,7 @@ Autogenerowane przez `./scripts/task list` i aktualizowane przez `./scripts/task
 | 017 | Prompt builder dla obrazków dziennych              | done         | 015        |
 | 018 | Wrapper OpenAI Batch API (submit + poll + parse)    | done         | 015        |
 | 019 | Skonfiguruj BullMQ + Redis connection               | done         | 003, 005   |
-| 020 | Dodaj kontener worker do docker-compose             | pending      | 019        |
+| 020 | Dodaj kontener worker do docker-compose             | done         | 019        |
 | 021 | Worker researchu — submit batch, poll, zapisz day | pending      | 012, 013, 016, 018, 020 |
 | 022 | Worker obrazków batch — submit, poll, zapisz PNG | pending      | 014, 017, 018, 021 |
 | 023 | Worker regeneracji pojedynczego dnia (realtime, bez | pending      | 022        |

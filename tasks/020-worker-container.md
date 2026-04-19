@@ -2,12 +2,14 @@
 id: 020
 title: Dodaj kontener worker do docker-compose
 type: chore
-status: pending
+status: done
 depends_on: [019]
 touches:
   - docker-compose.yml
   - src/jobs/worker-entry.ts
   - package.json
+  - pnpm-lock.yaml
+  - tasks/verify/020.sh
 ---
 
 ## Cel
