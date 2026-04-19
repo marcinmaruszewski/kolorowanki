@@ -17,7 +17,7 @@ Autogenerowane przez `./scripts/task list` i aktualizowane przez `./scripts/task
 | 011 | Utwórz kolekcję calendars                         | done         | 010        |
 | 012 | Utwórz kolekcję days z relacją do calendars      | done         | 011        |
 | 013 | Utwórz kolekcję generationJobs                    | done         | 011        |
-| 014 | Skonfiguruj kolekcję media z lokalnym storage na v | pending      | 011        |
+| 014 | Skonfiguruj kolekcję media z lokalnym storage na v | done         | 011        |
 | 015 | Skonfiguruj klienta OpenAI i env vars               | pending      | 005        |
 | 016 | Prompt builder i schema researchu miesiąca         | pending      | 015        |
 | 017 | Prompt builder dla obrazków dziennych              | pending      | 015        |

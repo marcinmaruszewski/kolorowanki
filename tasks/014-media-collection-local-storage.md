@@ -2,12 +2,14 @@
 id: 014
 title: Skonfiguruj kolekcję media z lokalnym storage na volume
 type: feat
-status: pending
+status: done
 depends_on: [011]
 touches:
   - src/payload/collections/media.ts
   - src/payload.config.ts
+  - src/payload-types.ts
   - docker-compose.yml
+  - tasks/verify/014.sh
 ---
 
 ## Cel

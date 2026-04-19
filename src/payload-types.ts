@@ -209,6 +209,8 @@ export interface Day {
  */
 export interface Media {
   id: number;
+  alt?: string | null;
+  calendar?: (number | null) | Calendar;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -513,6 +515,8 @@ export interface GenerationJobsSelect<T extends boolean = true> {
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
+  alt?: T;
+  calendar?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
