@@ -8,7 +8,7 @@ Autogenerowane przez `./scripts/task list` i aktualizowane przez `./scripts/task
 | 002 | Utwórz package.json i tsconfig bazowy (bez instala | done         | 001        |
 | 003 | Postaw Postgres i Redis przez docker-compose        | done         | 001        |
 | 004 | Skonteneryzuj aplikację (Dockerfile + usługa app  | done         | 002, 003   |
-| 005 | Zainstaluj Payload v3 + Next.js w kontenerze        | pending      | 004        |
+| 005 | Zainstaluj Payload v3 + Next.js w kontenerze        | done         | 004        |
 | 006 | Skonfiguruj kolekcję users z bazowymi polami       | pending      | 005        |
 | 007 | Przygotuj konfigurację OAuth w Google Cloud Consol | pending      | 006        |
 | 008 | Zaimplementuj Google OAuth strategy i callback      | pending      | 007        |

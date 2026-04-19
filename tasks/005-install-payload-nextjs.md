@@ -2,7 +2,7 @@
 id: 005
 title: Zainstaluj Payload v3 + Next.js w kontenerze
 type: feat
-status: pending
+status: done
 depends_on: [004]
 touches:
   - package.json
@@ -15,8 +15,12 @@ touches:
   - src/app/(payload)/admin/[[...segments]]/not-found.tsx
   - src/app/(payload)/api/[...slug]/route.ts
   - src/app/(payload)/api/graphql/route.ts
+  - src/app/(payload)/admin/importMap.ts
   - src/payload.config.ts
   - src/payload-types.ts
+  - tasks/verify/002.sh
+  - tasks/verify/005.sh
+  - .gitignore
 ---
 
 ## Cel

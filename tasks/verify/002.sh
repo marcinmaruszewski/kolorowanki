@@ -34,12 +34,5 @@ PKG_TYPE=$(jq -r '.type // ""' "$REPO_ROOT/package.json")
 [ "$PKG_TYPE" = "module" ] || fail "package.json type != module (got: $PKG_TYPE)"
 ok "type = module"
 
-# node_modules and pnpm-lock.yaml must NOT exist yet
-[ ! -d "$REPO_ROOT/node_modules" ] || fail "node_modules must not exist at this stage"
-ok "node_modules absent"
-
-[ ! -f "$REPO_ROOT/pnpm-lock.yaml" ] || fail "pnpm-lock.yaml must not exist at this stage"
-ok "pnpm-lock.yaml absent"
-
 echo ""
 echo "002 verify PASSED"
