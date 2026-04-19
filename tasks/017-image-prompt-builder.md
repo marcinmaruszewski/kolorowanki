@@ -2,11 +2,15 @@
 id: 017
 title: Prompt builder dla obrazków dziennych
 type: feat
-status: pending
+status: done
 depends_on: [015]
 touches:
   - src/lib/openai/image-prompt.ts
   - src/lib/openai/templates/image-prompt-template.txt
+  - src/lib/openai/__tests__/image-prompt.test.ts
+  - src/lib/openai/__tests__/__snapshots__/image-prompt.test.ts.snap
+  - tasks/verify/017.sh
+  - .claude/settings.json
 ---
 
 ## Cel

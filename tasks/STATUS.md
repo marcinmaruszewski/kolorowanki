@@ -20,7 +20,7 @@ Autogenerowane przez `./scripts/task list` i aktualizowane przez `./scripts/task
 | 014 | Skonfiguruj kolekcję media z lokalnym storage na v | done         | 011        |
 | 015 | Skonfiguruj klienta OpenAI i env vars               | done         | 005        |
 | 016 | Prompt builder i schema researchu miesiąca         | done         | 015        |
-| 017 | Prompt builder dla obrazków dziennych              | pending      | 015        |
+| 017 | Prompt builder dla obrazków dziennych              | done         | 015        |
 | 018 | Wrapper OpenAI Batch API (submit + poll + parse)    | pending      | 015        |
 | 019 | Skonfiguruj BullMQ + Redis connection               | pending      | 003, 005   |
 | 020 | Dodaj kontener worker do docker-compose             | pending      | 019        |

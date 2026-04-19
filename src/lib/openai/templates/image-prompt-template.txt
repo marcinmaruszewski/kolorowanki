@@ -1,0 +1,13 @@
+Use case: illustration-story
+Asset type: monthly coloring calendar tile for children, final project asset saved as YYYY/MM/DD.png
+Primary request: create a black-and-white printable coloring-page illustration for DD.MM that represents <motyw dnia>
+Scene/backdrop: minimal white background or no background, only a few supporting elements if they improve readability
+Subject: <glowny symbol albo mala scenka>
+Style/medium: children's coloring page line art, elegant clean outlines, printable, cohesive series style
+Composition/framing: one strong central motif, balanced tile, readable at small size on an A4 monthly sheet, with the date integrated into the illustration on a natural shape that belongs to the scene; never below the illustration as a detached caption
+Lighting/mood: cheerful, gentle, festive or seasonal as appropriate, never dark or dramatic
+Color palette: black outlines only on white background
+Materials/textures: smooth clean contours, large simple shapes, very limited interior detail
+Text (verbatim): "DD.MM"
+Constraints: child-friendly; black outlines only; no grayscale; no shading; no photorealism; no clutter; no watermark; no frame; no decorative border; no bottom divider; consistent with the rest of the month
+Avoid: caption under the drawing, extra underline, ornamental separator, clipart look, stock icon look, tiny ornaments, dense backgrounds, heavy crosshatching, extra text, realistic shadows

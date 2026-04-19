@@ -25,7 +25,8 @@
       "Bash(mkdir *)",
       "Bash(cp *)",
       "Bash(mv *)",
-      "Read(//home/mmarus03/.claude/projects/**)"
+      "Read(//home/mmarus03/.claude/projects/**)",
+      "Bash(wait)"
     ]
   }
 }
