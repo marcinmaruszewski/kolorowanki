@@ -2,10 +2,12 @@
 id: 018
 title: Wrapper OpenAI Batch API (submit + poll + parse)
 type: feat
-status: pending
+status: done
 depends_on: [015]
 touches:
   - src/lib/openai/batch.ts
+  - src/lib/openai/__tests__/batch.test.ts
+  - tasks/verify/018.sh
 ---
 
 ## Cel
