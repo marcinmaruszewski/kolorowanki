@@ -24,6 +24,9 @@ coverage/
 playwright-report/
 test-results/
 
+# pnpm store cache (tworzony przez kontener, nie commitujemy)
+.pnpm-store/
+
 # local agent state
 .codex
 .logs/

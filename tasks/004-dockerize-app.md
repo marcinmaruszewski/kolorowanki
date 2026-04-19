@@ -2,13 +2,15 @@
 id: 004
 title: Skonteneryzuj aplikację (Dockerfile + usługa app w compose)
 type: chore
-status: pending
+status: done
 depends_on: [002, 003]
 touches:
   - Dockerfile
   - .dockerignore
   - docker-compose.yml
   - .env.example
+  - .gitignore
+  - tasks/verify/004.sh
 ---
 
 ## Cel
