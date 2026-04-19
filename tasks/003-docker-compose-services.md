@@ -2,12 +2,13 @@
 id: 003
 title: Postaw Postgres i Redis przez docker-compose
 type: chore
-status: pending
+status: done
 depends_on: [001]
 touches:
   - docker-compose.yml
   - .env.example
   - .gitignore
+  - tasks/verify/003.sh
 ---
 
 ## Cel
