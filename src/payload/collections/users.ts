@@ -18,7 +18,8 @@ export const Users: CollectionConfig = {
       return { id: { equals: user.id } }
     },
     delete: ({ req: { user } }) => user?.role === 'admin',
-    create: () => true,
+    // REST user creation disabled in production; allowed in dev only when ENABLE_DEV_LOGIN=true
+    create: () => process.env.ENABLE_DEV_LOGIN === 'true' && process.env.NODE_ENV !== 'production',
   },
   fields: [
     {

@@ -2,7 +2,7 @@
 id: 008
 title: Zaimplementuj Google OAuth strategy i callback
 type: feat
-status: pending
+status: done
 depends_on: [007]
 touches:
   - package.json
@@ -11,6 +11,11 @@ touches:
   - src/app/api/auth/google/callback/route.ts
   - src/lib/auth/google.ts
   - src/payload/collections/users.ts
+  - tests/task-008/google-oauth.test.ts
+  - tests/task-006/users-collection.test.ts
+  - tasks/verify/006.sh
+  - tasks/verify/008.sh
+  - .env.example
 ---
 
 ## Cel

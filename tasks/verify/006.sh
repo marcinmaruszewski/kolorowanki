@@ -61,7 +61,7 @@ echo "OK: app is responding (HTTP $STATUS)"
 
 # 6. Run integration tests
 echo "--- running vitest integration tests ---"
-docker compose run --rm -e TEST_BASE_URL=http://app:3000 app pnpm vitest run tests/task-006
+docker compose run --rm -e TEST_BASE_URL=http://app:3000 -e ENABLE_DEV_LOGIN=true app pnpm vitest run tests/task-006
 VITEST_EXIT=$?
 
 docker compose down
