@@ -2,12 +2,14 @@
 id: 011
 title: Utwórz kolekcję calendars
 type: feat
-status: pending
+status: done
 depends_on: [010]
 touches:
   - src/payload/collections/calendars.ts
   - src/payload.config.ts
   - src/payload-types.ts
+  - tasks/verify/011.sh
+  - tests/task-011/calendars-collection.test.ts
 ---
 
 ## Cel

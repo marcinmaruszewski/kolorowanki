@@ -68,6 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     users: User;
+    calendars: Calendar;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
@@ -77,6 +78,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
+    calendars: CalendarsSelect<false> | CalendarsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -155,6 +157,22 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "calendars".
+ */
+export interface Calendar {
+  id: number;
+  year: number;
+  month: number;
+  owner: number | User;
+  status: 'draft' | 'planned' | 'generated' | 'composed' | 'exported';
+  seriesDirection?: string | null;
+  planMd?: string | null;
+  label?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -280,10 +298,15 @@ export interface PayloadJob {
  */
 export interface PayloadLockedDocument {
   id: number;
-  document?: {
-    relationTo: 'users';
-    value: number | User;
-  } | null;
+  document?:
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null)
+    | ({
+        relationTo: 'calendars';
+        value: number | Calendar;
+      } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
@@ -351,6 +374,21 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "calendars_select".
+ */
+export interface CalendarsSelect<T extends boolean = true> {
+  year?: T;
+  month?: T;
+  owner?: T;
+  status?: T;
+  seriesDirection?: T;
+  planMd?: T;
+  label?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

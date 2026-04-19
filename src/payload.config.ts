@@ -4,6 +4,7 @@ import { buildConfig } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { Users } from './payload/collections/users'
+import { Calendars } from './payload/collections/calendars'
 import { resetMonthlyQuotasIfFirstOfMonth } from './jobs/quota-reset-cron'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -16,7 +17,7 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URL,
     },
   }),
-  collections: [Users],
+  collections: [Users, Calendars],
   editor: lexicalEditor({}),
   typescript: {
     outputFile: path.resolve(__dirname, 'payload-types.ts'),
