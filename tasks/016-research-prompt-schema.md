@@ -2,11 +2,16 @@
 id: 016
 title: Prompt builder i schema researchu miesiąca
 type: feat
-status: pending
+status: done
 depends_on: [015]
 touches:
   - src/lib/openai/research.ts
   - src/lib/openai/schemas/month-plan.ts
+  - src/lib/openai/__tests__/research.test.ts
+  - src/lib/openai/__tests__/__snapshots__/research.test.ts.snap
+  - vitest.config.ts
+  - package.json
+  - tasks/verify/016.sh
 ---
 
 ## Cel
