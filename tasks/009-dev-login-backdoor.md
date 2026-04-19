@@ -2,11 +2,14 @@
 id: 009
 title: Zaimplementuj dev-login backdoor do testów
 type: feat
-status: pending
+status: done
 depends_on: [008]
 touches:
   - src/app/api/auth/dev-login/route.ts
+  - src/instrumentation.ts
   - .env.example
+  - tasks/verify/009.sh
+  - tests/task-009/dev-login.test.ts
 ---
 
 ## Cel

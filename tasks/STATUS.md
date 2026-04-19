@@ -12,7 +12,7 @@ Autogenerowane przez `./scripts/task list` i aktualizowane przez `./scripts/task
 | 006 | Skonfiguruj kolekcję users z bazowymi polami       | done         | 005        |
 | 007 | Przygotuj konfigurację OAuth w Google Cloud Consol | done         | 006        |
 | 008 | Zaimplementuj Google OAuth strategy i callback      | done         | 007        |
-| 009 | Zaimplementuj dev-login backdoor do testów         | pending      | 008        |
+| 009 | Zaimplementuj dev-login backdoor do testów         | done         | 008        |
 | 010 | Egzekwuj limit 1 kalendarza/miesiąc + cron reset   | pending      | 009        |
 | 011 | Utwórz kolekcję calendars                         | pending      | 010        |
 | 012 | Utwórz kolekcję days z relacją do calendars      | pending      | 011        |
