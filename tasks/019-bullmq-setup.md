@@ -2,13 +2,15 @@
 id: 019
 title: Skonfiguruj BullMQ + Redis connection
 type: feat
-status: pending
+status: done
 depends_on: [003, 005]
 touches:
   - package.json
   - pnpm-lock.yaml
   - src/lib/queue/connection.ts
   - src/lib/queue/queues.ts
+  - src/lib/queue/__tests__/connection.test.ts
+  - tasks/verify/019.sh
 ---
 
 ## Cel
