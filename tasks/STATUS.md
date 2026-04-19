@@ -15,7 +15,7 @@ Autogenerowane przez `./scripts/task list` i aktualizowane przez `./scripts/task
 | 009 | Zaimplementuj dev-login backdoor do testów         | done         | 008        |
 | 010 | Egzekwuj limit 1 kalendarza/miesiąc + cron reset   | done         | 009        |
 | 011 | Utwórz kolekcję calendars                         | done         | 010        |
-| 012 | Utwórz kolekcję days z relacją do calendars      | pending      | 011        |
+| 012 | Utwórz kolekcję days z relacją do calendars      | done         | 011        |
 | 013 | Utwórz kolekcję generationJobs                    | pending      | 011        |
 | 014 | Skonfiguruj kolekcję media z lokalnym storage na v | pending      | 011        |
 | 015 | Skonfiguruj klienta OpenAI i env vars               | pending      | 005        |

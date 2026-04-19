@@ -2,12 +2,15 @@
 id: 012
 title: Utwórz kolekcję days z relacją do calendars
 type: feat
-status: pending
+status: done
 depends_on: [011]
 touches:
   - src/payload/collections/days.ts
+  - src/payload/collections/media.ts
   - src/payload.config.ts
   - src/payload-types.ts
+  - tasks/verify/012.sh
+  - tests/task-012/days-collection.test.ts
 ---
 
 ## Cel

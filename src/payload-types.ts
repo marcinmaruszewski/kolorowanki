@@ -69,6 +69,8 @@ export interface Config {
   collections: {
     users: User;
     calendars: Calendar;
+    days: Day;
+    media: Media;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
@@ -79,6 +81,8 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     calendars: CalendarsSelect<false> | CalendarsSelect<true>;
+    days: DaysSelect<false> | DaysSelect<true>;
+    media: MediaSelect<false> | MediaSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -173,6 +177,47 @@ export interface Calendar {
   label?: string | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "days".
+ */
+export interface Day {
+  id: number;
+  calendar: number | Calendar;
+  day: number;
+  weekday?: ('pon' | 'wt' | 'śr' | 'czw' | 'pt' | 'sob' | 'niedz') | null;
+  occasion?: string | null;
+  motif?: string | null;
+  prompt?: string | null;
+  image?: (number | null) | Media;
+  status?: ('planned' | 'prompting' | 'generating' | 'generated' | 'failed') | null;
+  sources?:
+    | {
+        url?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -306,6 +351,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'calendars';
         value: number | Calendar;
+      } | null)
+    | ({
+        relationTo: 'days';
+        value: number | Day;
+      } | null)
+    | ({
+        relationTo: 'media';
+        value: number | Media;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -389,6 +442,45 @@ export interface CalendarsSelect<T extends boolean = true> {
   label?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "days_select".
+ */
+export interface DaysSelect<T extends boolean = true> {
+  calendar?: T;
+  day?: T;
+  weekday?: T;
+  occasion?: T;
+  motif?: T;
+  prompt?: T;
+  image?: T;
+  status?: T;
+  sources?:
+    | T
+    | {
+        url?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media_select".
+ */
+export interface MediaSelect<T extends boolean = true> {
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
