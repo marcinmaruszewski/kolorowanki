@@ -2,7 +2,7 @@
 id: 006
 title: Skonfiguruj kolekcję users z bazowymi polami
 type: feat
-status: pending
+status: done
 depends_on: [005]
 touches:
   - src/payload/collections/users.ts
