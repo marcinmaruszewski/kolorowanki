@@ -10,7 +10,7 @@ Autogenerowane przez `./scripts/task list` i aktualizowane przez `./scripts/task
 | 004 | Skonteneryzuj aplikację (Dockerfile + usługa app  | done         | 002, 003   |
 | 005 | Zainstaluj Payload v3 + Next.js w kontenerze        | done         | 004        |
 | 006 | Skonfiguruj kolekcję users z bazowymi polami       | done         | 005        |
-| 007 | Przygotuj konfigurację OAuth w Google Cloud Consol | pending      | 006        |
+| 007 | Przygotuj konfigurację OAuth w Google Cloud Consol | done         | 006        |
 | 008 | Zaimplementuj Google OAuth strategy i callback      | pending      | 007        |
 | 009 | Zaimplementuj dev-login backdoor do testów         | pending      | 008        |
 | 010 | Egzekwuj limit 1 kalendarza/miesiąc + cron reset   | pending      | 009        |

@@ -2,11 +2,12 @@
 id: 007
 title: Przygotuj konfigurację OAuth w Google Cloud Console i env vars
 type: chore
-status: pending
+status: done
 depends_on: [006]
 touches:
   - .env.example
   - docs/GOOGLE_OAUTH_SETUP.md
+  - tasks/verify/007.sh
 ---
 
 ## Cel
