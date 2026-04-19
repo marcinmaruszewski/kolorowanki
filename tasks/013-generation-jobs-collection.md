@@ -2,12 +2,13 @@
 id: 013
 title: Utwórz kolekcję generationJobs
 type: feat
-status: pending
+status: done
 depends_on: [011]
 touches:
   - src/payload/collections/generation-jobs.ts
   - src/payload.config.ts
   - src/payload-types.ts
+  - tasks/verify/013.sh
 ---
 
 ## Cel

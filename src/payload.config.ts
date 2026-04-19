@@ -6,6 +6,7 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { Users } from './payload/collections/users'
 import { Calendars } from './payload/collections/calendars'
 import { Days } from './payload/collections/days'
+import { GenerationJobs } from './payload/collections/generation-jobs'
 import { Media } from './payload/collections/media'
 import { resetMonthlyQuotasIfFirstOfMonth } from './jobs/quota-reset-cron'
 
@@ -19,7 +20,7 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URL,
     },
   }),
-  collections: [Users, Calendars, Days, Media],
+  collections: [Users, Calendars, Days, GenerationJobs, Media],
   editor: lexicalEditor({}),
   typescript: {
     outputFile: path.resolve(__dirname, 'payload-types.ts'),

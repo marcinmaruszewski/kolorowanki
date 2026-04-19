@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     calendars: Calendar;
     days: Day;
+    'generation-jobs': GenerationJob;
     media: Media;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
@@ -82,6 +83,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     calendars: CalendarsSelect<false> | CalendarsSelect<true>;
     days: DaysSelect<false> | DaysSelect<true>;
+    'generation-jobs': GenerationJobsSelect<false> | GenerationJobsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
@@ -221,6 +223,25 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "generation-jobs".
+ */
+export interface GenerationJob {
+  id: number;
+  calendar: number | Calendar;
+  type: 'research' | 'images' | 'single-image' | 'pdf';
+  status?: ('queued' | 'submitted' | 'in-progress' | 'completed' | 'failed' | 'cancelled') | null;
+  openaiBatchId?: string | null;
+  costUsd?: number | null;
+  inputTokens?: number | null;
+  outputTokens?: number | null;
+  errorLog?: string | null;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -357,6 +378,10 @@ export interface PayloadLockedDocument {
         value: number | Day;
       } | null)
     | ({
+        relationTo: 'generation-jobs';
+        value: number | GenerationJob;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
       } | null);
@@ -462,6 +487,24 @@ export interface DaysSelect<T extends boolean = true> {
         url?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "generation-jobs_select".
+ */
+export interface GenerationJobsSelect<T extends boolean = true> {
+  calendar?: T;
+  type?: T;
+  status?: T;
+  openaiBatchId?: T;
+  costUsd?: T;
+  inputTokens?: T;
+  outputTokens?: T;
+  errorLog?: T;
+  startedAt?: T;
+  completedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
