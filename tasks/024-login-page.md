@@ -2,12 +2,13 @@
 id: 024
 title: Strona logowania (PL) z przyciskiem Google
 type: feat
-status: pending
+status: done
 depends_on: [008]
 touches:
   - src/app/(app)/login/page.tsx
   - src/app/(app)/layout.tsx
   - src/styles/globals.css
+  - tasks/verify/024.sh
 ---
 
 ## Cel
