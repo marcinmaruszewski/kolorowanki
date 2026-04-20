@@ -2,11 +2,13 @@
 id: 027
 title: Kreator nowego kalendarza (wybór roku i miesiąca)
 type: feat
-status: pending
+status: done
 depends_on: [021, 026]
 touches:
   - src/app/(app)/kalendarz/nowy/page.tsx
   - src/app/(app)/kalendarz/nowy/actions.ts
+  - src/styles/globals.css
+  - tasks/verify/027.sh
 ---
 
 ## Cel
