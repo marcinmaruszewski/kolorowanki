@@ -2,11 +2,13 @@
 id: 022
 title: Worker obrazków batch — submit, poll, zapisz PNG do media
 type: feat
-status: pending
+status: done
 depends_on: [014, 017, 018, 021]
 touches:
   - src/jobs/images-worker.ts
   - src/jobs/worker-entry.ts
+  - src/jobs/__tests__/images-worker.test.ts
+  - tasks/verify/022.sh
 ---
 
 ## Cel
