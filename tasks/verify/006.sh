@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
+source "$ROOT/tasks/verify/_helpers.sh"
 
 echo "=== verify 006: users collection ==="
 
@@ -14,61 +15,29 @@ FILES=(
 )
 
 for f in "${FILES[@]}"; do
-  if [ ! -f "$f" ]; then
-    echo "FAIL: missing file $f"
-    exit 1
-  fi
+  [[ -f "$f" ]] || fail "missing file $f"
 done
 echo "OK: all required files present"
 
 # 2. TypeScript check
-echo "--- tsc --noEmit ---"
-docker compose run --rm app pnpm exec tsc --noEmit
+run_tsc
 echo "OK: tsc --noEmit passed"
 
 # 3. Verify types contain role field
-if ! grep -q "role: 'user' | 'admin'" src/payload-types.ts; then
-  echo "FAIL: payload-types.ts does not contain role: 'user' | 'admin'"
-  exit 1
-fi
+grep -q "role: 'user' | 'admin'" src/payload-types.ts \
+  || fail "payload-types.ts does not contain role: 'user' | 'admin'"
 echo "OK: payload-types.ts contains role field"
 
 # 4. Verify Users is registered in payload.config.ts
-if ! grep -q "Users" src/payload.config.ts; then
-  echo "FAIL: Users collection not registered in payload.config.ts"
-  exit 1
-fi
+grep -q "Users" src/payload.config.ts || fail "Users collection not registered in payload.config.ts"
 echo "OK: Users registered in payload.config.ts"
 
-# 5. Start stack and wait for app
-echo "--- starting stack ---"
-docker compose up -d
+# 5. Start clean stack and run integration tests
+trap 'reset_compose_state' EXIT
+reset_compose_state
+start_compose_services postgres redis app
 
-echo "--- waiting for app to be ready (max 120s) ---"
-TRIES=0
-MAX=24
-until STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/users 2>/dev/null) && [ -n "$STATUS" ] && [ "$STATUS" != "000" ]; do
-  sleep 5
-  TRIES=$((TRIES + 1))
-  if [ $TRIES -ge $MAX ]; then
-    echo "FAIL: app did not respond on http://localhost:3000 after 120s"
-    docker compose logs app --tail=30
-    docker compose down
-    exit 1
-  fi
-done
-echo "OK: app is responding (HTTP $STATUS)"
-
-# 6. Run integration tests
 echo "--- running vitest integration tests ---"
-docker compose run --rm -e TEST_BASE_URL=http://app:3000 -e ENABLE_DEV_LOGIN=true app pnpm vitest run tests/task-006
-VITEST_EXIT=$?
-
-docker compose down
-
-if [ $VITEST_EXIT -ne 0 ]; then
-  echo "FAIL: vitest tests failed"
-  exit 1
-fi
+run_task_vitest tests/task-006 -e TEST_BASE_URL=http://127.0.0.1:3000 -e ENABLE_DEV_LOGIN=true
 
 echo "=== verify 006 PASSED ==="

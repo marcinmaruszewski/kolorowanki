@@ -1,15 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { buildAuthUrl } from '../../src/lib/auth/google'
+import { BASE, waitForApp } from '../helpers/app'
 
-const BASE = process.env.TEST_BASE_URL ?? 'http://localhost:3000'
+beforeAll(async () => {
+  await waitForApp()
+})
+
+beforeEach(() => {
+  process.env.GOOGLE_CLIENT_ID = 'test-client-id'
+  process.env.GOOGLE_CLIENT_SECRET = 'test-client-secret'
+  process.env.GOOGLE_REDIRECT_URI = 'http://localhost:3000/api/auth/google/callback'
+})
 
 describe('task-008: google OAuth helper', () => {
-  beforeEach(() => {
-    process.env.GOOGLE_CLIENT_ID = 'test-client-id'
-    process.env.GOOGLE_CLIENT_SECRET = 'test-client-secret'
-    process.env.GOOGLE_REDIRECT_URI = 'http://localhost:3000/api/auth/google/callback'
-  })
-
   it('buildAuthUrl generates correct Google OAuth URL', () => {
     const state = 'test-state-abc123'
     const url = buildAuthUrl(state)

@@ -2,7 +2,7 @@
 # Kalendarz — task helper
 # Commands:
 #   ./scripts/task list              # print table of all tasks
-#   ./scripts/task context <id>      # print OVERVIEW + PRD + ADR + AGENTS + task + deps
+#   ./scripts/task context <id>      # print OVERVIEW + PRD + ADR + AGENTS + TESTING + task + deps
 #   ./scripts/task verify <id>       # run verify for 001..id (regression)
 #   ./scripts/task done <id>         # mark task as done + auto-commit
 #   ./scripts/task show <id>         # print just the task file
@@ -142,7 +142,7 @@ cmd_context() {
   echo "${BOLD}${BLUE}# ========================================${RESET}"
   echo ""
 
-  for doc in OVERVIEW.md PRD.md ADR.md AGENTS.md; do
+  for doc in OVERVIEW.md PRD.md ADR.md AGENTS.md TESTING.md; do
     if [[ -f "$DOCS_DIR/$doc" ]]; then
       echo "${BOLD}${BLUE}### docs/$doc${RESET}"
       echo ""

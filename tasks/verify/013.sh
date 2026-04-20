@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+cd "$ROOT"
+source "$ROOT/tasks/verify/_helpers.sh"
+
 echo "=== task-013: generationJobs collection ==="
 
 # tsc
 echo ">> tsc --noEmit"
-docker compose run --rm app pnpm tsc --noEmit
+run_tsc
 
 # typy zawierają GenerationJob
 echo ">> grep GenerationJob w payload-types.ts"

@@ -4,8 +4,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
+source "$ROOT/tasks/verify/_helpers.sh"
 
-fail() { echo "  ✘ $*" >&2; exit 1; }
 ok()   { echo "  ✓ $*"; }
 
 # 1. git repo
@@ -13,8 +13,8 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "repo is not a git w
 ok "git repo initialized"
 
 # 2. required files exist
+require_files .gitignore .editorconfig .nvmrc README.md LICENSE
 for f in .gitignore .editorconfig .nvmrc README.md LICENSE; do
-  [[ -f "$f" ]] || fail "missing file: $f"
   ok "exists: $f"
 done
 

@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+cd "$ROOT"
+source "$ROOT/tasks/verify/_helpers.sh"
 
 echo "=== 018: tsc ==="
-docker compose run --rm app pnpm exec tsc --noEmit
+run_tsc
 
 echo "=== 018: vitest batch ==="
-docker compose run --rm app pnpm exec vitest run src/lib/openai/__tests__/batch.test.ts
+run_vitest src/lib/openai/__tests__/batch.test.ts
 
 echo "=== 018: OK ==="

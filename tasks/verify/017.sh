@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+cd "$ROOT"
+source "$ROOT/tasks/verify/_helpers.sh"
+
 echo "=== verify 017: image-prompt builder ==="
 
 # Sprawdź pliki
@@ -14,9 +18,9 @@ grep -q '<glowny symbol albo mala scenka>' src/lib/openai/templates/image-prompt
 grep -q 'DD\.MM' src/lib/openai/templates/image-prompt-template.txt || { echo "FAIL: brak DD.MM w szablonie"; exit 1; }
 
 # TypeScript
-docker compose run --rm app pnpm exec tsc --noEmit
+run_tsc
 
 # Testy vitest
-docker compose run --rm app pnpm exec vitest run src/lib/openai/__tests__/image-prompt.test.ts
+run_vitest src/lib/openai/__tests__/image-prompt.test.ts
 
 echo "=== verify 017: OK ==="

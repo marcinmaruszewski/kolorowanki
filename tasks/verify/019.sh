@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+cd "$ROOT"
+source "$ROOT/tasks/verify/_helpers.sh"
 
 echo "=== 019: tsc ==="
-docker compose run --rm app pnpm exec tsc --noEmit
+run_tsc
 
 echo "=== 019: vitest integration (Redis ping) ==="
-docker compose run --rm app pnpm exec vitest run src/lib/queue/__tests__/connection.test.ts
+run_vitest src/lib/queue/__tests__/connection.test.ts
 
 echo "=== 019: OK ==="

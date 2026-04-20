@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
+source "$ROOT/tasks/verify/_helpers.sh"
 
 echo "=== verify 005: Payload v3 + Next.js install ==="
 
@@ -23,77 +24,44 @@ FILES=(
 )
 
 for f in "${FILES[@]}"; do
-  if [ ! -f "$f" ]; then
-    echo "FAIL: missing file $f"
-    exit 1
-  fi
+  [[ -f "$f" ]] || fail "missing file $f"
 done
 echo "OK: all required files present"
 
 # 2. TypeScript check
-echo "--- tsc --noEmit ---"
-docker compose run --rm app pnpm exec tsc --noEmit
+run_tsc
 echo "OK: tsc --noEmit passed"
 
 # 3. Check payload and next are in package.json
-if ! grep -q '"payload"' package.json; then
-  echo "FAIL: payload not found in package.json"
-  exit 1
-fi
-if ! grep -q '"next"' package.json; then
-  echo "FAIL: next not found in package.json"
-  exit 1
-fi
+grep -q '"payload"' package.json || fail "payload not found in package.json"
+grep -q '"next"' package.json || fail "next not found in package.json"
 echo "OK: payload and next in package.json"
 
 # 4. Check pnpm dev script
-if ! grep -q '"dev"' package.json; then
-  echo "FAIL: dev script not in package.json"
-  exit 1
-fi
+grep -q '"dev"' package.json || fail "dev script not in package.json"
 echo "OK: dev script present"
 
 # 5. Check docker-compose has pnpm dev command for app
-if ! grep -q 'pnpm.*dev\|dev.*pnpm' docker-compose.yml; then
-  echo "FAIL: pnpm dev command not found in docker-compose.yml for app service"
-  exit 1
-fi
+grep -q 'pnpm.*dev\|dev.*pnpm' docker-compose.yml \
+  || fail "pnpm dev command not found in docker-compose.yml for app service"
 echo "OK: docker-compose.yml has pnpm dev command"
 
 # 6. Check tsconfig has @payload-config path
-if ! grep -q '@payload-config' tsconfig.json; then
-  echo "FAIL: @payload-config path not found in tsconfig.json"
-  exit 1
-fi
+grep -q '@payload-config' tsconfig.json || fail "@payload-config path not found in tsconfig.json"
 echo "OK: @payload-config path alias present in tsconfig.json"
 
-# 7. Start stack and verify app responds
-echo "--- starting stack ---"
-docker compose up -d
+# 7. Start clean stack and run app smoke
+SESSION="verify-005-$$"
+trap 'close_browser_session "$SESSION"; reset_compose_state' EXIT
 
-echo "--- waiting for app to be ready (max 90s) ---"
-TRIES=0
-MAX=18
-until STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 2>/dev/null) && [ -n "$STATUS" ] && [ "$STATUS" != "000" ]; do
-  sleep 5
-  TRIES=$((TRIES + 1))
-  if [ $TRIES -ge $MAX ]; then
-    echo "FAIL: app did not respond on http://localhost:3000 after 90s"
-    docker compose logs app --tail=30
-    docker compose down
-    exit 1
-  fi
-done
-echo "OK: app is responding on http://localhost:3000 (HTTP $STATUS)"
+reset_compose_state
+start_compose_services postgres redis app
 
-# 8. Check /admin returns 2xx or 3xx (no -L: 307 redirect to create-first-user is expected)
-STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/admin)
-if ! echo "$STATUS" | grep -qE "^[23]"; then
-  echo "FAIL: /admin returned HTTP $STATUS"
-  docker compose down
-  exit 1
-fi
-echo "OK: /admin returned HTTP $STATUS"
+echo "--- vitest smoke ---"
+run_task_vitest tests/task-005
 
-docker compose down
+echo "--- browser smoke /login ---"
+browser_wait_for_page "$SESSION" "http://127.0.0.1:3000/login"
+assert_browser_main_contains "$SESSION" "Zaloguj się, żeby wygenerować kalendarz kolorowanek"
+
 echo "=== verify 005 PASSED ==="

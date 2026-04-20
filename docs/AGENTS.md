@@ -1,10 +1,10 @@
 # AGENTS.md — instrukcja pracy dla agenta
 
-Ten plik opisuje, jak agent (np. Claude Code, Cursor, Codex) ma pracować z tym repo. Przeczytaj to **przed** tknięciem kodu.
+Ten plik opisuje, jak agent (np. Claude Code, Cursor, Codex) ma pracować z tym repo. Przeczytaj to **przed** tknięciem kodu, a zasady testów bierz z `docs/TESTING.md`.
 
 ## Zasada zerowa: wszystko w Dockerze
 
-Runtime aplikacji, migracje, testy, `pnpm install`, `pnpm exec`, `pnpm dev`, Vitest, Playwright, generowanie typów Payload — **wszystko uruchamia się w kontenerze** `app`, przez:
+Runtime aplikacji, migracje, `pnpm install`, `pnpm exec`, `pnpm dev`, Vitest, legacy Playwright harness, generowanie typów Payload — **wszystko uruchamia się w kontenerze** `app`, przez:
 
 ```bash
 docker compose run --rm app <komenda>
@@ -16,6 +16,7 @@ docker compose exec app <komenda>
 - `./scripts/task …` (bash helper, zero zależności Node)
 - `git` (agent commituje przez skrypt, nie ręcznie — patrz sekcja „Commity")
 - `docker compose …` i `docker …`
+- `agent-browser` (browser automation CLI)
 - Edytory tekstowe, IDE
 
 Host może mieć Node/pnpm zainstalowane na potrzeby IDE (TypeScript language server), ale **agent nigdy nie woła ich bezpośrednio** — zawsze przez `docker compose`.
@@ -28,7 +29,7 @@ Konsekwencja: `pnpm-lock.yaml` powstaje w kontenerze przy pierwszym `pnpm instal
    ```bash
    ./scripts/task context <id>
    ```
-   Dostaniesz: `OVERVIEW.md` + `PRD.md` + `ADR.md` + `AGENTS.md` + zadeklarowany task + wszystkie jego `depends_on` (transitywnie). To jest Twój cały briefing.
+   Dostaniesz: `OVERVIEW.md` + `PRD.md` + `ADR.md` + `AGENTS.md` + `TESTING.md` + zadeklarowany task + wszystkie jego `depends_on` (transitywnie). To jest Twój cały briefing.
 
 2. **Zaimplementuj** — dokładnie to, co mówi sekcja `## Zakres (DO)`. Nie dorzucaj rzeczy z `## Poza zakresem`. Nie refaktoruj poza taskiem. Edytuj **tylko** pliki z frontmatter `touches`; jeśli potrzebujesz dodać plik poza listą, dopisz go do `touches` w tym samym commicie i uzasadnij w commit message (linia `Extra touches: <plik> — <powód>`).
 
@@ -41,7 +42,7 @@ Konsekwencja: `pnpm-lock.yaml` powstaje w kontenerze przy pierwszym `pnpm instal
    - uruchomi wszystkie poprzednie `tasks/verify/NNN.sh` dla tasków `001..id-1` ze statusem `done` (regresja)
    - wypisze checklistę manualną z `## Weryfikacja manualna`
    
-   Automatyczne skrypty weryfikacyjne typowo wywołują `docker compose run --rm app pnpm vitest run tests/task-<id>` itp. — weryfikacja też siedzi w Dockerze.
+   W trakcie implementacji najpierw rób szybkie checki celowane (`vitest`, a dla UI `agent-browser`), ale przed zamknięciem taska obowiązuje pełne `./scripts/task verify <id>`. Szczegóły polityki testów są w `docs/TESTING.md`.
 
 4. **Oznacz jako done i zacommituj**:
    ```bash
@@ -90,17 +91,19 @@ Konsekwencja: `pnpm-lock.yaml` powstaje w kontenerze przy pierwszym `pnpm instal
 
 ## Testy
 
-- **Vitest** — unit + integration (szybkie, uruchamiane w verify).
-- **Playwright** — e2e (wolniejsze, osobna komenda).
+- **Vitest** — domyślna ścieżka dla unit + integration. Zawsze uruchamiany w kontenerze Node, tj. serwisie `app`: `docker compose run --rm app pnpm vitest run …`.
+- **agent-browser** — domyślna ścieżka dla lokalnych testów UI/e2e/smoke. W nowych taskach preferuj go zamiast Playwright i zamiast ręcznego `curl` po localhost.
+- **Playwright** — tylko jeśli task wyraźnie go wymaga albo repo ma już gotowy harness, którego nie opłaca się omijać.
 - Testy per task żyją w `tests/task-<id>/` (np. `tests/task-006/google-oauth.test.ts`).
-- Wszystko odpalane w kontenerze `app`.
+- Wszystko odpalane w kontenerze `app`, a jeśli test dotyka Postgresa/Redisa/sesji — startuje z czystych wolumenów projektu zgodnie z `docs/TESTING.md`.
 - Verify `<id>` puszcza testy **wszystkich** tasków `001..id` ze statusem `done` + bieżący — to jest regresja. Zielony wcześniejszy task po Twoich zmianach nie może się zepsuć.
+- Nie dokładaj do nowych verify-skryptów lokalnych flow opartych o `curl`, ręczne cookie-jary, `wait`, PID-y albo polling HTTP, jeśli ten sam dowód da się zrobić przez `vitest` lub `agent-browser`.
 
 ## Auth w testach (dev-login backdoor)
 
 Logowanie Google w testach jest niemożliwe (wymaga interakcji użytkownika + hasła). Mamy dedykowany **dev-login endpoint** `POST /api/auth/dev-login`, dostępny tylko gdy `ENABLE_DEV_LOGIN=true` w env (domyślnie tak w `.env.example` dla dev, nieustawione w prod Dokploy). Pozwala on zalogować się jako dowolny istniejący user bez Google OAuth.
 
-Playwright i integration testy używają tego endpointu. Real Google flow testujesz **tylko ręcznie** w checkliście odpowiedniego taska — user klika sam.
+`agent-browser`, Playwright i integration testy mogą używać tego endpointu. Real Google flow testujesz **tylko ręcznie** w checkliście odpowiedniego taska — user klika sam.
 
 ## Jeśli utkniesz
 
@@ -109,3 +112,4 @@ Playwright i integration testy używają tego endpointu. Real Google flow testuj
 - Brakująca zależność (task 005 zależy od 003, ale 003 nie `done`) — **przerwij**, powiedz userowi.
 - Test z wcześniejszego taska jest czerwony po Twoich zmianach — regresja, **napraw zanim oznaczysz jako done**.
 - `docker compose run --rm app …` nie działa → najpierw sprawdź `docker compose ps` i logi. Nie skacz do alternatywnych ścieżek (`npm` na hoście itp.).
+- Jeśli verify wymaga czystej bazy, używaj projektowego resetu `docker compose down -v --remove-orphans`, a nie globalnego `docker volume prune`.

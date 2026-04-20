@@ -1,69 +1,33 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+cd "$ROOT"
+source "$ROOT/tasks/verify/_helpers.sh"
+
 echo "=== verify 020: worker container ==="
 
 # 1. Check worker-entry.ts exists
-if [ ! -f "src/jobs/worker-entry.ts" ]; then
-  echo "FAIL: src/jobs/worker-entry.ts not found"
-  exit 1
-fi
+require_files "src/jobs/worker-entry.ts"
 
 # 2. Check package.json has worker script
-if ! grep -q '"worker"' package.json; then
-  echo "FAIL: package.json missing 'worker' script"
-  exit 1
-fi
+grep -q '"worker"' package.json || fail "package.json missing 'worker' script"
 
 # 3. Check docker-compose.yml has worker service
-if ! grep -q 'worker:' docker-compose.yml; then
-  echo "FAIL: docker-compose.yml missing 'worker' service"
-  exit 1
-fi
+grep -q 'worker:' docker-compose.yml || fail "docker-compose.yml missing 'worker' service"
 
 # 4. Start worker container and check logs
-docker compose up -d worker 2>/dev/null
-
-# Wait up to 15s for the startup message
-FOUND=0
-for i in $(seq 1 15); do
-  if docker compose logs worker 2>/dev/null | grep -q "Worker entrypoint started"; then
-    FOUND=1
-    break
-  fi
-  sleep 1
-done
-
-if [ "$FOUND" -eq 0 ]; then
-  echo "FAIL: worker did not log 'Worker entrypoint started' within 15s"
-  docker compose logs worker
-  docker compose stop worker
-  exit 1
-fi
+trap 'reset_compose_state' EXIT
+reset_compose_state
+start_compose_services postgres redis worker
+wait_for_service_log worker "Worker entrypoint started" 15 1
 
 echo "OK: worker started and logged expected message"
 
 # 5. Check SIGTERM graceful shutdown
-WORKER_CID=$(docker compose ps -q worker)
-docker kill --signal=SIGTERM "$WORKER_CID" >/dev/null 2>&1
-
-# Wait up to 10s for container to exit
-EXIT_CODE=1
-for i in $(seq 1 10); do
-  STATUS=$(docker inspect --format='{{.State.Status}}' "$WORKER_CID" 2>/dev/null || echo "gone")
-  if [ "$STATUS" = "exited" ] || [ "$STATUS" = "gone" ]; then
-    EXIT_CODE=0
-    break
-  fi
-  sleep 1
-done
-
-docker compose stop worker 2>/dev/null || true
-
-if [ "$EXIT_CODE" -ne 0 ]; then
-  echo "FAIL: worker did not exit within 10s after SIGTERM"
-  exit 1
-fi
+docker compose stop -t 10 worker >/dev/null
+wait_for_service_log worker "SIGTERM received, shutting down workers" 10 1
+wait_for_service_log worker "Workers closed, exiting" 10 1
 
 echo "OK: worker shut down cleanly after SIGTERM"
 echo "=== verify 020 PASSED ==="

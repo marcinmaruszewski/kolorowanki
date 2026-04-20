@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+cd "$ROOT"
+source "$ROOT/tasks/verify/_helpers.sh"
+
 echo "=== 015: openai SDK + client singleton ==="
 
 # openai w package.json
@@ -22,6 +26,6 @@ grep -q 'OPENAI_IMAGE_MODEL' .env.example    || { echo "FAIL: brak OPENAI_IMAGE_
 grep 'OPENAI_API_KEY' .env.example | grep -vq 'OPENAI_API_KEY=' && { echo "FAIL: OPENAI_API_KEY ma wartość"; exit 1; } || true
 
 # tsc
-docker compose run --rm app pnpm exec tsc --noEmit
+run_tsc
 
 echo "OK"

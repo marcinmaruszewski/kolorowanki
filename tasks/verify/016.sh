@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+cd "$ROOT"
+source "$ROOT/tasks/verify/_helpers.sh"
+
 echo "=== 016: prompt builder i schema researchu miesiąca ==="
 
 # Pliki istnieją
@@ -21,6 +25,6 @@ grep -q 'export function parseMonthPlan'      "$RESEARCH" || { echo "FAIL: brak 
 grep -q '"zod"' package.json || { echo "FAIL: brak zod w package.json"; exit 1; }
 
 # vitest — tylko testy research (16 testów jednostkowych, bez testów HTTP)
-docker compose run --rm app pnpm exec vitest run src/lib/openai/__tests__/research.test.ts
+run_vitest src/lib/openai/__tests__/research.test.ts
 
 echo "OK"

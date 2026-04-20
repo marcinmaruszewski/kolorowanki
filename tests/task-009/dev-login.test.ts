@@ -1,8 +1,11 @@
-import { describe, it, expect } from 'vitest'
-
-const BASE = process.env.TEST_BASE_URL ?? 'http://localhost:3000'
+import { beforeAll, describe, it, expect } from 'vitest'
+import { BASE, waitForApp } from '../helpers/app'
 
 describe('task-009: /api/auth/dev-login endpoint', () => {
+  beforeAll(async () => {
+    await waitForApp()
+  })
+
   it('POST /api/auth/dev-login returns 200 + cookie when ENABLE_DEV_LOGIN=true', async () => {
     const email = `devtest-${Date.now()}@example.com`
     const res = await fetch(`${BASE}/api/auth/dev-login`, {

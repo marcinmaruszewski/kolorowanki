@@ -2,6 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(docker compose *)",
+      "Bash(agent-browser *)",
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(git push *)",
@@ -26,7 +27,12 @@
       "Bash(cp *)",
       "Bash(mv *)",
       "Read(//home/mmarus03/.claude/projects/**)",
-      "Bash(wait)"
+      "Read(//home/mmarus03/dump/kolorowanki/.agents/skills/miesieczny-kalendarz-kolorowanek/**)",
+      "Read(//tmp/**)",
+      "Bash(grep -v \"^$\")"
+    ],
+    "additionalDirectories": [
+      "/home/mmarus03/dump/kolorowanki/kolorowanki-dokploy/src/app/(app)/kalendarz/[id]"
     ]
   }
 }

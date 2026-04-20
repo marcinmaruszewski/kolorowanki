@@ -8,6 +8,7 @@ Darmowa webowa aplikacja do generowania miesięcznych kalendarzy kolorowanek dla
 - [PRD](docs/PRD.md)
 - [ADR — decyzje architektoniczne](docs/ADR.md)
 - [AGENTS — zasady pracy agenta](docs/AGENTS.md)
+- [TESTING — polityka testów](docs/TESTING.md)
 - [Backlog tasków](tasks/)
 
 ## Jak zacząć
@@ -21,7 +22,7 @@ Cała praca idzie tasko po tasku z katalogu `tasks/`. Do obsługi służy helper
 ./scripts/task done <id>         # flip statusu + auto-commit
 ```
 
-Szczegóły flow w [docs/AGENTS.md](docs/AGENTS.md).
+Szczegóły flow w [docs/AGENTS.md](docs/AGENTS.md), a zasady testów w [docs/TESTING.md](docs/TESTING.md).
 
 ## Licencja
 

@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest'
-
-const BASE = process.env.TEST_BASE_URL ?? 'http://localhost:3000'
+import { BASE, waitForApp } from '../helpers/app'
 
 // Unique suffix so parallel runs don't collide
 const SUFFIX = Date.now()
@@ -12,6 +11,8 @@ describe('task-006: users collection', () => {
   let token: string
 
   beforeAll(async () => {
+    await waitForApp({ path: '/api/users' })
+
     // Create a fresh user via public POST /api/users
     const res = await fetch(`${BASE}/api/users`, {
       method: 'POST',
