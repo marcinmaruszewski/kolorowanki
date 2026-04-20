@@ -58,7 +58,7 @@ export const Calendars: CollectionConfig = {
     {
       name: 'status',
       type: 'select',
-      options: ['draft', 'planned', 'generated', 'composed', 'exported'],
+      options: ['draft', 'planned', 'plan_accepted', 'generated', 'composed', 'exported'],
       defaultValue: 'draft',
       required: true,
     },

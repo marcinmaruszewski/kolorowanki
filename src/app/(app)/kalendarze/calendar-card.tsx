@@ -5,6 +5,7 @@ import type { Calendar, Day, Media } from '@/payload-types'
 const STATUS_LABELS: Record<Calendar['status'], string> = {
   draft: 'Szkic',
   planned: 'Zaplanowany',
+  plan_accepted: 'Generowanie…',
   generated: 'Wygenerowany',
   composed: 'Skomponowany',
   exported: 'Wyeksportowany',

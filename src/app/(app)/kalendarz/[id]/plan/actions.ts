@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { getCurrentUser } from '@/lib/auth/current-user'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 
 interface DayUpdate {
   id: number
@@ -51,4 +52,35 @@ export async function updateDays(
 
   revalidatePath(`/kalendarz/${calendarId}/plan`)
   return {}
+}
+
+export async function acceptPlan(calendarId: number): Promise<{ error?: string }> {
+  const user = await getCurrentUser()
+  if (!user) return { error: 'Brak autoryzacji.' }
+
+  const payload = await getPayload({ config: configPromise })
+
+  const calendar = await payload
+    .findByID({ collection: 'calendars', id: calendarId, overrideAccess: true })
+    .catch(() => null)
+  if (!calendar) return { error: 'Nie znaleziono kalendarza.' }
+
+  const ownerId = typeof calendar.owner === 'object' ? calendar.owner.id : calendar.owner
+  if (ownerId !== user.id && user.role !== 'admin') return { error: 'Brak autoryzacji.' }
+
+  if (calendar.status !== 'draft' && calendar.status !== 'planned') {
+    return { error: 'Plan można zaakceptować tylko dla kalendarza w statusie draft lub planned.' }
+  }
+
+  const { enqueueImagesBatch } = await import('@/jobs/enqueue-images')
+  await enqueueImagesBatch(calendarId)
+
+  await payload.update({
+    collection: 'calendars',
+    id: calendarId,
+    data: { status: 'plan_accepted' },
+    overrideAccess: true,
+  })
+
+  redirect(`/kalendarz/${calendarId}/obrazki`)
 }

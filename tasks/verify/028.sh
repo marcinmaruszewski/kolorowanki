@@ -20,7 +20,7 @@ require_files \
 assert_file_contains "src/app/(app)/kalendarz/[id]/plan/page.tsx" 'draft' "page.tsx: brak obsługi statusu draft"
 assert_file_contains "src/app/(app)/kalendarz/[id]/plan/page.tsx" 'http-equiv|httpEquiv' "page.tsx: brak meta refresh"
 assert_file_contains "src/app/(app)/kalendarz/[id]/plan/page.tsx" 'Generujemy plan' "page.tsx: brak komunikatu Generujemy plan"
-assert_file_contains "src/app/(app)/kalendarz/[id]/plan/page.tsx" 'disabled' "page.tsx: przycisk Dalej powinien być disabled"
+assert_file_contains "src/app/(app)/kalendarz/[id]/plan/plan-table.tsx" 'disabled' "plan-table.tsx: przyciski powinny być disabled"
 assert_file_contains "src/app/(app)/kalendarz/[id]/plan/plan-table.tsx" 'Dzień|Dzie' "plan-table.tsx: brak kolumny Dzień"
 assert_file_contains "src/app/(app)/kalendarz/[id]/plan/plan-table.tsx" 'Okazja' "plan-table.tsx: brak kolumny Okazja"
 assert_file_contains "src/app/(app)/kalendarz/[id]/plan/plan-table.tsx" 'Motyw' "plan-table.tsx: brak kolumny Motyw"

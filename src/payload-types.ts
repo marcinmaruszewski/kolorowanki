@@ -173,7 +173,7 @@ export interface Calendar {
   year: number;
   month: number;
   owner: number | User;
-  status: 'draft' | 'planned' | 'generated' | 'composed' | 'exported';
+  status: 'draft' | 'planned' | 'plan_accepted' | 'generated' | 'composed' | 'exported';
   seriesDirection?: string | null;
   planMd?: string | null;
   label?: string | null;

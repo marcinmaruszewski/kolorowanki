@@ -2,7 +2,7 @@
 
 import React, { useState, useTransition } from 'react'
 import type { Day } from '@/payload-types'
-import { updateDays } from './actions'
+import { updateDays, acceptPlan } from './actions'
 
 const WEEKDAY_LABEL: Record<string, string> = {
   pon: 'Pon',
@@ -41,6 +41,7 @@ export function PlanTable({ days, year, month, calendarId, editable }: PlanTable
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [isAccepting, startAcceptTransition] = useTransition()
 
   const isDirty = sorted.some((d) => {
     const r = rows[d.id]
@@ -130,9 +131,22 @@ export function PlanTable({ days, year, month, calendarId, editable }: PlanTable
           <button
             className="btn btn-secondary"
             onClick={handleSave}
-            disabled={!isDirty || isPending}
+            disabled={!isDirty || isPending || isAccepting}
           >
             {isPending ? 'Zapisywanie…' : 'Zapisz zmiany'}
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              setError(null)
+              startAcceptTransition(async () => {
+                const result = await acceptPlan(calendarId)
+                if (result?.error) setError(result.error)
+              })
+            }}
+            disabled={isDirty || isPending || isAccepting}
+          >
+            {isAccepting ? 'Zlecanie generacji…' : 'Wygeneruj obrazki'}
           </button>
         </div>
       )}

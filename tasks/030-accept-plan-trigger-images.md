@@ -2,12 +2,20 @@
 id: 030
 title: Akceptacja planu — trigger batch generacji obrazków
 type: feat
-status: pending
+status: done
 depends_on: [022, 029]
 touches:
   - src/app/(app)/kalendarz/[id]/plan/actions.ts
   - src/app/(app)/kalendarz/[id]/plan/plan-table.tsx
+  - src/app/(app)/kalendarz/[id]/plan/page.tsx
   - src/jobs/enqueue-images.ts
+  - src/payload/collections/calendars.ts
+  - src/payload-types.ts
+  - src/app/(app)/kalendarze/calendar-card.tsx
+  - tasks/verify/028.sh
+  - tasks/verify/030.sh
+  - tests/task-028/plan-page.test.ts
+  - tests/task-030/enqueue-images.test.ts
 ---
 
 ## Cel

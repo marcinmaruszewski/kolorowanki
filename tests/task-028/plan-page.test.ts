@@ -77,6 +77,6 @@ describe('task-028: plan page', () => {
     expect(text).toContain('Motyw')
     expect(text).toContain('Okazja 1')
     expect(text).toContain('Motyw 1')
-    expect(text).toContain('Dalej: wygeneruj obrazki')
+    expect(text).toContain('Wygeneruj obrazki')
   })
 })

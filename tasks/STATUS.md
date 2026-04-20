@@ -33,7 +33,7 @@ Autogenerowane przez `./scripts/task list` i aktualizowane przez `./scripts/task
 | 027 | Kreator nowego kalendarza (wybór roku i miesiąca) | done         | 021, 026   |
 | 028 | Strona planu kalendarza (read-only) z pollingiem st | done         | 021, 027   |
 | 029 | Edycja planu (okazja, motyw) przed generacją obraz | done         | 028        |
-| 030 | Akceptacja planu — trigger batch generacji obrazk | pending      | 022, 029   |
+| 030 | Akceptacja planu — trigger batch generacji obrazk | done         | 022, 029   |
 | 031 | Galeria wygenerowanych obrazków (grid 7 kolumn)    | pending      | 022, 030   |
 | 032 | Modal regeneracji pojedynczego dnia (prompt overrid | pending      | 023, 031   |
 | 033 | Licznik pozostałych regeneracji i ostrzeżenia     | pending      | 032        |
