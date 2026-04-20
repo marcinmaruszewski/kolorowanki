@@ -1,9 +1,10 @@
 import { researchWorker } from './research-worker'
 import { imagesWorker } from './images-worker'
+import { singleImageWorker } from './single-image-worker'
 
 console.log('Worker entrypoint started, awaiting jobs…')
 
-const workers: { close: () => Promise<void> }[] = [researchWorker, imagesWorker]
+const workers: { close: () => Promise<void> }[] = [researchWorker, imagesWorker, singleImageWorker]
 
 async function gracefulShutdown() {
   console.log('SIGTERM received, shutting down workers…')

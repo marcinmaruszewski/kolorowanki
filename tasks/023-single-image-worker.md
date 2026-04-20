@@ -2,11 +2,13 @@
 id: 023
 title: Worker regeneracji pojedynczego dnia (realtime, bez batch)
 type: feat
-status: pending
+status: done
 depends_on: [022]
 touches:
   - src/jobs/single-image-worker.ts
   - src/jobs/worker-entry.ts
+  - src/jobs/__tests__/single-image-worker.test.ts
+  - tasks/verify/023.sh
 ---
 
 ## Cel

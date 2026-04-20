@@ -26,7 +26,7 @@ Autogenerowane przez `./scripts/task list` i aktualizowane przez `./scripts/task
 | 020 | Dodaj kontener worker do docker-compose             | done         | 019        |
 | 021 | Worker researchu — submit batch, poll, zapisz day | done         | 012, 013, 016, 018, 020 |
 | 022 | Worker obrazków batch — submit, poll, zapisz PNG | done         | 014, 017, 018, 021 |
-| 023 | Worker regeneracji pojedynczego dnia (realtime, bez | pending      | 022        |
+| 023 | Worker regeneracji pojedynczego dnia (realtime, bez | done         | 022        |
 | 024 | Strona logowania (PL) z przyciskiem Google          | pending      | 008        |
 | 025 | Layout aplikacyjny + nawigacja auth-aware           | pending      | 024        |
 | 026 | Strona listy moich kalendarzy                       | pending      | 011, 025   |
