@@ -2,11 +2,12 @@
 id: 026
 title: Strona listy moich kalendarzy
 type: feat
-status: pending
+status: done
 depends_on: [011, 025]
 touches:
   - src/app/(app)/kalendarze/page.tsx
   - src/app/(app)/kalendarze/calendar-card.tsx
+  - tasks/verify/026.sh
 ---
 
 ## Cel

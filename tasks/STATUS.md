@@ -29,7 +29,7 @@ Autogenerowane przez `./scripts/task list` i aktualizowane przez `./scripts/task
 | 023 | Worker regeneracji pojedynczego dnia (realtime, bez | done         | 022        |
 | 024 | Strona logowania (PL) z przyciskiem Google          | done         | 008        |
 | 025 | Layout aplikacyjny + nawigacja auth-aware           | done         | 024        |
-| 026 | Strona listy moich kalendarzy                       | pending      | 011, 025   |
+| 026 | Strona listy moich kalendarzy                       | done         | 011, 025   |
 | 027 | Kreator nowego kalendarza (wybór roku i miesiąca) | pending      | 021, 026   |
 | 028 | Strona planu kalendarza (read-only) z pollingiem st | pending      | 021, 027   |
 | 029 | Edycja planu (okazja, motyw) przed generacją obraz | pending      | 028        |
