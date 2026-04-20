@@ -1,14 +1,13 @@
 import React from 'react'
 import '@/styles/globals.css'
+import NavBar from '@/components/nav-bar'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pl">
       <head />
       <body>
-        <header className="site-header">
-          <span className="logo">Kalendarz</span>
-        </header>
+        <NavBar />
         {children}
       </body>
     </html>

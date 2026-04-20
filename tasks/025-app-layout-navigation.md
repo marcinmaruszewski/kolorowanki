@@ -2,7 +2,7 @@
 id: 025
 title: Layout aplikacyjny + nawigacja auth-aware
 type: feat
-status: pending
+status: done
 depends_on: [024]
 touches:
   - src/app/(app)/layout.tsx
