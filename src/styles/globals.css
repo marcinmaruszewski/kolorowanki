@@ -237,3 +237,76 @@ a {
   font-size: 0.9rem;
   text-align: center;
 }
+
+/* ---- Plan page ---- */
+.plan-pending {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.plan-pending-msg {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.plan-pending-hint {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.plan-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+}
+
+.plan-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.plan-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid #e5e7eb;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.plan-table td {
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: top;
+}
+
+.plan-table tr:last-child td {
+  border-bottom: none;
+}
+
+.plan-day-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.plan-day-num {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.plan-day-wd {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.plan-day-date {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.plan-actions {
+  padding-top: 1rem;
+}

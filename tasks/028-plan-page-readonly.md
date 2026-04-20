@@ -2,7 +2,7 @@
 id: 028
 title: Strona planu kalendarza (read-only) z pollingiem statusu
 type: feat
-status: pending
+status: done
 depends_on: [021, 027]
 touches:
   - src/app/(app)/kalendarz/[id]/plan/page.tsx
