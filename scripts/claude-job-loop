@@ -4,14 +4,19 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROMPT_FILE="$ROOT/JOB.md"
+PROGRESS_FILE="${PROGRESS_FILE:-}"
 DELAY_SECONDS="${DELAY_SECONDS:-0}"
 MAX_RUNS="${MAX_RUNS:-0}"
 CONTINUE_ON_ERROR="${CONTINUE_ON_ERROR:-0}"
 WAIT_ON_LIMIT="${WAIT_ON_LIMIT:-1}"
 WAIT_FALLBACK_SECONDS="${WAIT_FALLBACK_SECONDS:-900}"
 WAIT_BUFFER_SECONDS="${WAIT_BUFFER_SECONDS:-60}"
+COMPLETION_PROMISE="${COMPLETION_PROMISE:-COMPLETE}"
+PERMISSION_MODE="${PERMISSION_MODE:-acceptEdits}"
+OUTPUT_FORMAT="${OUTPUT_FORMAT:-stream-json}"
 LOG_DIR="${LOG_DIR:-$ROOT/.logs/claude-job-loop}"
 LOG_FILE="${LOG_FILE:-}"
+PROGRESS_FILE_DISABLED=0
 
 usage() {
   cat <<'EOF'
@@ -20,16 +25,27 @@ Użycie:
                             [--continue-on-error] [--no-wait-on-limit]
                             [--wait-fallback SEKUNDY] [--wait-buffer SEKUNDY]
                             [--log-dir KATALOG] [--log-file PLIK]
+                            [--progress-file PLIK] [--no-progress-file]
+                            [--completion-promise TEKST]
+                            [--permission-mode TRYB]
+                            [--output-format text|json|stream-json]
   ./scripts/claude-job-loop [--help]
 
 Opis:
-  W pętli uruchamia `claude -p "<treść pliku>"`.
-  Po każdej iteracji ponownie wczytuje plik promptu, więc zmiany w `JOB.md`
-  są brane pod uwagę bez restartu skryptu.
+  W pętli uruchamia świeże `claude -p` w stylu Ralph Loop.
+  Po każdej iteracji ponownie wczytuje plik promptu i opcjonalny plik postępu,
+  więc zmiany w `JOB.md` i progressie są brane pod uwagę bez restartu skryptu.
 
   Gdy Claude zwróci komunikat o wyczerpaniu limitu i poda czas resetu,
   skrypt może poczekać do resetu i ponowić próbę. `--max-runs` liczy tylko
   udane przebiegi, więc limit nie zjada dostępnych iteracji.
+
+  Domyślnie skrypt:
+  - używa `--permission-mode acceptEdits`
+  - zapisuje postęp w `./.logs/claude-job-loop/progress.txt`
+  - oczekuje completion sigila `<promise>COMPLETE</promise>`
+  - streamuje output przez `--output-format stream-json --verbose`
+  - fail-fastuje, gdy Claude poprosi o zgodę zamiast działać autonomicznie
 
 Opcje:
   --prompt PLIK           Plik z promptem. Domyślnie: ./JOB.md
@@ -41,15 +57,24 @@ Opcje:
   --wait-buffer N         Bufor dodawany do czasu resetu. Domyślnie: 60
   --log-dir KATALOG       Katalog logów. Domyślnie: ./.logs/claude-job-loop
   --log-file PLIK         Konkretny plik logu. Domyślnie: timestamp w log-dir
+  --progress-file PLIK    Plik postępu Ralph loopa. Domyślnie: <log-dir>/progress.txt
+  --no-progress-file      Wyłącz dołączanie pliku postępu do promptu
+  --completion-promise T  Sigil kończący pętlę. Domyślnie: COMPLETE
+  --permission-mode TRYB  Claude permission mode. Domyślnie: acceptEdits
+  --output-format FORMAT  text, json albo stream-json. Domyślnie: stream-json
   --help                  Pokaż pomoc
 
 Zmienne środowiskowe:
+  PROGRESS_FILE           To samo co --progress-file
   DELAY_SECONDS           To samo co --delay
   MAX_RUNS                To samo co --max-runs
   CONTINUE_ON_ERROR       1 = kontynuuj po błędzie, 0 = przerwij
   WAIT_ON_LIMIT           1 = czekaj na reset limitu, 0 = nie czekaj
   WAIT_FALLBACK_SECONDS   To samo co --wait-fallback
   WAIT_BUFFER_SECONDS     To samo co --wait-buffer
+  COMPLETION_PROMISE      To samo co --completion-promise
+  PERMISSION_MODE         To samo co --permission-mode
+  OUTPUT_FORMAT           To samo co --output-format
   LOG_DIR                 To samo co --log-dir
   LOG_FILE                To samo co --log-file
 EOF
@@ -74,6 +99,149 @@ trim() {
 log() {
   local message="$1"
   printf '%s\n' "$message" | tee -a "$LOG_FILE"
+}
+
+normalize_path() {
+  local target="$1"
+
+  if [[ -d "$target" ]]; then
+    (cd "$target" && pwd)
+  else
+    (cd "$(dirname "$target")" && printf '%s/%s\n' "$(pwd)" "$(basename "$target")")
+  fi
+}
+
+prompt_reference_for_file() {
+  local file="$1"
+  local absolute
+
+  absolute="$(normalize_path "$file")"
+
+  if [[ "$absolute" == "$ROOT/"* ]]; then
+    printf '%s' "${absolute#$ROOT/}"
+  else
+    printf '%s' "$absolute"
+  fi
+}
+
+build_iteration_prompt() {
+  local prompt_ref progress_ref progress_section=""
+
+  prompt_ref="@$(prompt_reference_for_file "$PROMPT_FILE")"
+
+  if [[ -n "$PROGRESS_FILE" ]]; then
+    progress_ref="@$(prompt_reference_for_file "$PROGRESS_FILE")"
+    progress_section=$'\n'"$progress_ref"
+  fi
+
+  cat <<EOF
+$prompt_ref$progress_section
+
+Jesteś uruchomiony w pętli Ralph.
+
+W tej iteracji:
+1. Przeczytaj prompt i plik postępu.
+2. Wybierz dokładnie jeden najmniejszy następny krok, który realnie możesz domknąć teraz.
+3. Wprowadź zmiany, uruchom odpowiednią weryfikację i zostaw repo w spójnym stanie.
+4. Zaktualizuj plik postępu: co zostało zrobione, co jest następne, jakie są blokery.
+5. Jeśli całość jest zakończona, wypisz dokładnie <promise>${COMPLETION_PROMISE}</promise>.
+6. Jeśli potrzebujesz zgody człowieka, inputu, sekretu albo decyzji produktowej, wypisz dokładnie <approval-request>KRÓTKI POWÓD</approval-request> i zakończ iterację bez czekania na odpowiedź.
+7. Nie zaczynaj drugiego taska ani drugiego większego kroku w tej samej iteracji.
+EOF
+}
+
+looks_like_permission_prompt() {
+  local output="$1"
+  grep -Eiq '(requires approval|requires permission|permission required|approval required|do you want to allow|allow this action|cannot continue without approval|permission mode|needs your approval)' <<< "$output"
+}
+
+contains_completion_promise() {
+  local output="$1"
+  grep -Fq "<promise>${COMPLETION_PROMISE}</promise>" <<< "$output"
+}
+
+contains_approval_request() {
+  local output="$1"
+  grep -Eiq '<approval-request>.*</approval-request>' <<< "$output"
+}
+
+format_stream_json_line() {
+  local line="$1"
+  local rendered
+
+  if ! command -v jq >/dev/null 2>&1; then
+    printf '%s\n' "$line"
+    return 0
+  fi
+
+  rendered="$(jq -r '
+    if .type == "system" and .subtype == "init" then
+      "[session] model=" + (.model // "?") + " permission=" + (.permissionMode // "?")
+    elif .type == "result" and (.result? != null) then
+      .result
+    elif .type == "assistant" and .message.content? then
+      [
+        .message.content[]?
+        | if (.type // "") == "text" and (.text? != null) then
+            .text
+          elif (.type // "") == "tool_use" then
+            "[tool] " + (.name // "unknown")
+            + (
+              if .input.command? then ": " + .input.command
+              elif .input.file_path? then ": " + .input.file_path
+              elif .input.path? then ": " + .input.path
+              elif .input.pattern? then ": " + .input.pattern
+              elif .input? then ": " + (.input | tojson)
+              else ""
+              end
+            )
+          else
+            empty
+          end
+      ] | join("\n")
+    elif .type == "user" and (.tool_use_result? != null) then
+      if (.message.content[0]?.is_error // false) then
+        "[tool error] " + .tool_use_result
+      else
+        empty
+      end
+    else
+      empty
+    end
+  ' <<< "$line" 2>/dev/null || true)"
+
+  if [[ -n "$rendered" ]]; then
+    printf '%s\n' "$rendered"
+  fi
+}
+
+run_claude_iteration() {
+  local prompt="$1"
+  local tmp_output="$2"
+  local -a cmd=(claude -p "$prompt" --permission-mode "$PERMISSION_MODE" --output-format "$OUTPUT_FORMAT")
+  local exit_code formatted
+
+  if [[ "$OUTPUT_FORMAT" == "stream-json" ]]; then
+    cmd+=(--verbose --include-partial-messages)
+  fi
+
+  set +e
+  if [[ "$OUTPUT_FORMAT" == "stream-json" ]]; then
+    "${cmd[@]}" 2>&1 | while IFS= read -r line || [[ -n "$line" ]]; do
+      printf '%s\n' "$line" >> "$tmp_output"
+      formatted="$(format_stream_json_line "$line")"
+      if [[ -n "$formatted" ]]; then
+        printf '%s\n' "$formatted" | tee -a "$LOG_FILE"
+      fi
+    done
+    exit_code=${PIPESTATUS[0]}
+  else
+    "${cmd[@]}" 2>&1 | tee -a "$LOG_FILE" "$tmp_output"
+    exit_code=${PIPESTATUS[0]}
+  fi
+  set -e
+
+  return "$exit_code"
 }
 
 parse_epoch() {
@@ -219,6 +387,32 @@ while [[ $# -gt 0 ]]; do
       LOG_FILE="$2"
       shift 2
       ;;
+    --progress-file)
+      [[ $# -ge 2 ]] || die "brakuje wartości dla --progress-file"
+      PROGRESS_FILE="$2"
+      PROGRESS_FILE_DISABLED=0
+      shift 2
+      ;;
+    --no-progress-file)
+      PROGRESS_FILE=""
+      PROGRESS_FILE_DISABLED=1
+      shift
+      ;;
+    --completion-promise)
+      [[ $# -ge 2 ]] || die "brakuje wartości dla --completion-promise"
+      COMPLETION_PROMISE="$2"
+      shift 2
+      ;;
+    --permission-mode)
+      [[ $# -ge 2 ]] || die "brakuje wartości dla --permission-mode"
+      PERMISSION_MODE="$2"
+      shift 2
+      ;;
+    --output-format)
+      [[ $# -ge 2 ]] || die "brakuje wartości dla --output-format"
+      OUTPUT_FORMAT="$2"
+      shift 2
+      ;;
     --help|-h)
       usage
       exit 0
@@ -236,6 +430,8 @@ is_non_negative_integer "$WAIT_FALLBACK_SECONDS" || die "--wait-fallback musi by
 is_non_negative_integer "$WAIT_BUFFER_SECONDS" || die "--wait-buffer musi być liczbą >= 0"
 [[ "$CONTINUE_ON_ERROR" == "0" || "$CONTINUE_ON_ERROR" == "1" ]] || die "CONTINUE_ON_ERROR musi być równe 0 albo 1"
 [[ "$WAIT_ON_LIMIT" == "0" || "$WAIT_ON_LIMIT" == "1" ]] || die "WAIT_ON_LIMIT musi być równe 0 albo 1"
+[[ "$OUTPUT_FORMAT" == "text" || "$OUTPUT_FORMAT" == "json" || "$OUTPUT_FORMAT" == "stream-json" ]] || die "--output-format musi być jednym z: text, json, stream-json"
+[[ -n "$COMPLETION_PROMISE" ]] || die "--completion-promise nie może być pusty"
 
 if [[ -z "$LOG_FILE" ]]; then
   LOG_FILE="$LOG_DIR/$(date '+%Y%m%d-%H%M%S').log"
@@ -243,6 +439,15 @@ fi
 
 mkdir -p "$(dirname "$LOG_FILE")"
 touch "$LOG_FILE"
+
+if [[ "$PROGRESS_FILE_DISABLED" -eq 0 && -z "$PROGRESS_FILE" ]]; then
+  PROGRESS_FILE="$LOG_DIR/progress.txt"
+fi
+
+if [[ -n "$PROGRESS_FILE" ]]; then
+  mkdir -p "$(dirname "$PROGRESS_FILE")"
+  touch "$PROGRESS_FILE"
+fi
 
 stop_requested=0
 attempt_count=0
@@ -257,6 +462,15 @@ on_interrupt() {
 trap on_interrupt INT TERM
 
 log "Start runnera. Log file: $LOG_FILE"
+log "Prompt: $PROMPT_FILE"
+if [[ -n "$PROGRESS_FILE" ]]; then
+  log "Progress file: $PROGRESS_FILE"
+else
+  log "Progress file: <disabled>"
+fi
+log "Permission mode: $PERMISSION_MODE"
+log "Output format: $OUTPUT_FORMAT"
+log "Completion promise: <promise>${COMPLETION_PROMISE}</promise>"
 
 while :; do
   if [[ "$MAX_RUNS" -gt 0 && "$completed_runs" -ge "$MAX_RUNS" ]]; then
@@ -270,26 +484,43 @@ while :; do
 
   attempt_count=$((attempt_count + 1))
   started_at="$(date '+%Y-%m-%d %H:%M:%S')"
-  prompt="$(<"$PROMPT_FILE")"
+  prompt_body="$(<"$PROMPT_FILE")"
 
-  if [[ -z "$prompt" ]]; then
+  if [[ -z "$prompt_body" ]]; then
     die "plik promptu jest pusty: $PROMPT_FILE"
   fi
+
+  prompt="$(build_iteration_prompt)"
 
   log "[$started_at] Start próby #$attempt_count, celowana udana iteracja #$((completed_runs + 1)) z promptu: $PROMPT_FILE"
 
   tmp_output="$(mktemp)"
-  set +e
-  claude -p "$prompt" 2>&1 | tee -a "$LOG_FILE" "$tmp_output"
-  exit_code=${PIPESTATUS[0]}
-  set -e
+  if run_claude_iteration "$prompt" "$tmp_output"; then
+    exit_code=0
+  else
+    exit_code=$?
+  fi
 
   finished_at="$(date '+%Y-%m-%d %H:%M:%S')"
   log "[$finished_at] Koniec próby #$attempt_count, exit code: $exit_code"
 
+  output="$(<"$tmp_output")"
+  rm -f "$tmp_output"
+
+  if contains_approval_request "$output" || looks_like_permission_prompt "$output"; then
+    log "Wykryto prośbę o zgodę albo approval prompt. Ralph loop zatrzymuje się zamiast wisieć bez końca."
+    log "Rozwiązanie: poszerz allowlistę w .claude/settings.json albo uruchom z innym --permission-mode dla tego środowiska."
+    exit 2
+  fi
+
+  if [[ "$exit_code" -eq 0 ]] && contains_completion_promise "$output"; then
+    completed_runs=$((completed_runs + 1))
+    log "Claude zgłosił zakończenie pracy przez completion promise. Kończę pętlę."
+    break
+  fi
+
   if [[ "$exit_code" -eq 0 ]]; then
     completed_runs=$((completed_runs + 1))
-    rm -f "$tmp_output"
 
     if [[ "$stop_requested" -eq 1 ]]; then
       break
@@ -302,9 +533,6 @@ while :; do
 
     continue
   fi
-
-  output="$(<"$tmp_output")"
-  rm -f "$tmp_output"
 
   if [[ "$WAIT_ON_LIMIT" -eq 1 ]] && looks_like_limit_error "$output"; then
     if wait_seconds="$(extract_wait_seconds "$output")"; then
