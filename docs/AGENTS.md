@@ -91,13 +91,16 @@ Konsekwencja: `pnpm-lock.yaml` powstaje w kontenerze przy pierwszym `pnpm instal
 
 ## Testy
 
-- **Vitest** — domyślna ścieżka dla unit + integration. Zawsze uruchamiany w kontenerze Node, tj. serwisie `app`: `docker compose run --rm app pnpm vitest run …`.
+- **Vitest** — domyślna ścieżka dla unit + integration. Zawsze uruchamiany w kontenerze Node, tj. serwisie `app`.
+- Dla pure unit i mockowanych integration używaj `docker compose run --rm app pnpm vitest run …`.
+- Dla testów wymagających działającej aplikacji HTTP podnieś stack i uruchom test przez `docker compose exec -T app pnpm vitest run …`.
 - **agent-browser** — domyślna ścieżka dla lokalnych testów UI/e2e/smoke. W nowych taskach preferuj go zamiast Playwright i zamiast ręcznego `curl` po localhost.
 - **Playwright** — tylko jeśli task wyraźnie go wymaga albo repo ma już gotowy harness, którego nie opłaca się omijać.
 - Testy per task żyją w `tests/task-<id>/` (np. `tests/task-006/google-oauth.test.ts`).
 - Wszystko odpalane w kontenerze `app`, a jeśli test dotyka Postgresa/Redisa/sesji — startuje z czystych wolumenów projektu zgodnie z `docs/TESTING.md`.
 - Verify `<id>` puszcza testy **wszystkich** tasków `001..id` ze statusem `done` + bieżący — to jest regresja. Zielony wcześniejszy task po Twoich zmianach nie może się zepsuć.
 - Nie dokładaj do nowych verify-skryptów lokalnych flow opartych o `curl`, ręczne cookie-jary, `wait`, PID-y albo polling HTTP, jeśli ten sam dowód da się zrobić przez `vitest` lub `agent-browser`.
+- Jeśli verify pasuje do istniejącego wzorca, użyj helperów z `tasks/verify/_helpers.sh` zamiast ręcznie składać boilerplate `docker compose`.
 
 ## Auth w testach (dev-login backdoor)
 
@@ -111,5 +114,5 @@ Logowanie Google w testach jest niemożliwe (wymaga interakcji użytkownika + ha
 - Sprzeczność `PRD.md` vs `ADR.md` albo task vs docs — **przerwij**, nie rozstrzygaj samodzielnie.
 - Brakująca zależność (task 005 zależy od 003, ale 003 nie `done`) — **przerwij**, powiedz userowi.
 - Test z wcześniejszego taska jest czerwony po Twoich zmianach — regresja, **napraw zanim oznaczysz jako done**.
-- `docker compose run --rm app …` nie działa → najpierw sprawdź `docker compose ps` i logi. Nie skacz do alternatywnych ścieżek (`npm` na hoście itp.).
+- `docker compose run --rm app …` albo `docker compose exec -T app …` nie działa → najpierw sprawdź `docker compose ps` i logi. Nie skacz do alternatywnych ścieżek (`npm` na hoście itp.).
 - Jeśli verify wymaga czystej bazy, używaj projektowego resetu `docker compose down -v --remove-orphans`, a nie globalnego `docker volume prune`.

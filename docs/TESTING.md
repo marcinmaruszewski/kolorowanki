@@ -4,15 +4,18 @@ To jest źródło prawdy dla nowych tasków, `tasks/verify/*.sh`, `JOB.md`, `AGE
 
 ## Zasady bazowe
 
-- Domyślny automat to **Vitest** uruchamiany w kontenerze Node, czyli serwisie `app`: `docker compose run --rm app pnpm vitest run …`.
+- Domyślny automat to **Vitest** uruchamiany w kontenerze Node, czyli serwisie `app`.
+- Dla pure unit i mockowanych integration używaj `docker compose run --rm app pnpm vitest run …`.
+- Dla testów, które wymagają działającej aplikacji HTTP, po podniesieniu stacka używaj `docker compose exec -T app pnpm vitest run …`.
 - Dla lokalnych testów UI/e2e/smoke domyślnym narzędziem jest **`agent-browser`**.
 - Nie buduj nowych verify-skryptów na `curl`, ręcznych cookie-jarach, `wait`, PID-ach, backgroundowaniu procesów ani pollingu HTTP po localhost, jeśli ten sam dowód da się uzyskać przez `vitest` lub `agent-browser`.
 - `Playwright` traktuj jako wyjątek historyczny. W nowych taskach preferuj `agent-browser`, chyba że task wyraźnie wymaga Playwright albo repo ma już gotowy harness, którego rozszerzenie jest tańsze niż nowy flow.
+- Jeśli verify-script pasuje do istniejącego wzorca, preferuj helpery z `tasks/verify/_helpers.sh` zamiast kopiowania sekwencji `docker compose`.
 
 ## Macierz decyzji
 
 - **Pure unit / parser / mapper / prompt builder / worker orchestration z mockami**: tylko `vitest`.
-- **Hooki Payload, route handlery, Server Actions, integracja z repo**: `vitest` w `app`, z mockami albo z lokalnym stackiem zależnie od potrzeby.
+- **Hooki Payload, route handlery, Server Actions, integracja z repo**: `vitest` w `app`, z mockami albo z lokalnym stackiem zależnie od potrzeby. Gdy test odpytuje HTTP aplikacji, uruchom go przez `docker compose exec -T app …` na już działającym kontenerze.
 - **UI pages, guardy auth, formularze, klikalne flow, downloady, smoke lokalny**: `agent-browser`.
 - **Zewnętrzny smoke po deployu albo task stricte o API contract**: shell + `curl` są dozwolone, ale tylko jako wyjątek opisany w tasku.
 
@@ -51,7 +54,7 @@ docker compose run --rm app pnpm vitest run tests/task-XXX
 # Jeśli task dotyka trwałego stanu albo UI:
 docker compose down -v --remove-orphans
 docker compose up -d postgres redis app
-docker compose run --rm app pnpm vitest run tests/task-XXX
+docker compose exec -T app pnpm vitest run tests/task-XXX
 
 agent-browser --session task-XXX open http://127.0.0.1:3000/login
 agent-browser --session task-XXX wait --load networkidle
@@ -60,7 +63,8 @@ docker compose down -v --remove-orphans
 
 Nie każdy verify potrzebuje wszystkich kroków. Zasada jest prosta:
 
-- logika i integracja kodowa: najpierw `vitest`
+- logika i integracja kodowa bez żyjącego HTTP: `docker compose run --rm app pnpm vitest run …`
+- testy wymagające działającej aplikacji: po `docker compose up -d …` użyj `docker compose exec -T app pnpm vitest run …`
 - zachowanie w przeglądarce: potem `agent-browser`
 - czysta baza: tylko gdy test realnie dotyka stanu
 

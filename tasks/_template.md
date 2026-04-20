@@ -32,7 +32,8 @@ Jeśli task wymaga decyzji niewynikającej z ADR/PRD, opisz ją tutaj. W przeciw
 Warunki, które **muszą** być spełnione, żeby task był `done`. Konkretne i sprawdzalne.
 
 - Plik `X` istnieje i zawiera `Y`
-- `docker compose run --rm app pnpm vitest run …` zwraca exit 0
+- `docker compose run --rm app pnpm vitest run …` zwraca exit 0 dla pure unit / mockowanych integration
+- Jeśli task wymaga działającej aplikacji HTTP, `docker compose exec -T app pnpm vitest run …` zwraca exit 0 po podniesieniu stacka
 - Jeśli task dotyka UI: flow przechodzi w `agent-browser`
 - Jeśli task dotyka trwałego stanu: verify startuje z czystych wolumenów projektu
 
@@ -47,11 +48,11 @@ docker compose run --rm app pnpm vitest run tests/task-XXX
 # Jeśli task dotyka Postgresa / Redisa / sesji / auth / UI:
 docker compose down -v --remove-orphans
 docker compose up -d postgres redis app
-docker compose run --rm app pnpm vitest run tests/task-XXX
+docker compose exec -T app pnpm vitest run tests/task-XXX
 agent-browser --session task-XXX open http://127.0.0.1:3000/...
 ```
 
-Nowe taski mają domyślnie preferować `vitest` i `agent-browser`. Nie wpisuj tu `curl`, cookie-jarów, PID-ów, `wait` ani ręcznego pollingu localhost, jeśli to nie jest sednem taska. Szczegóły: `docs/TESTING.md`.
+Nowe taski mają domyślnie preferować `vitest` i `agent-browser`. Jeśli pasuje, korzystaj z `tasks/verify/_helpers.sh` zamiast powielać boilerplate `docker compose`. Nie wpisuj tu `curl`, cookie-jarów, PID-ów, `wait` ani ręcznego pollingu localhost, jeśli to nie jest sednem taska. Szczegóły: `docs/TESTING.md`.
 
 ## Weryfikacja manualna
 
