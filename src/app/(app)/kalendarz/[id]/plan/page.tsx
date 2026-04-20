@@ -56,7 +56,13 @@ export default async function PlanPage({ params }: Props) {
         </>
       ) : (
         <>
-          <PlanTable days={days as Day[]} year={calendar.year} month={calendar.month} />
+          <PlanTable
+            days={days as Day[]}
+            year={calendar.year}
+            month={calendar.month}
+            calendarId={calendar.id}
+            editable={calendar.status === 'draft' || calendar.status === 'planned'}
+          />
 
           <div className="plan-actions">
             <button className="btn btn-primary" disabled>

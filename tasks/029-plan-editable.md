@@ -2,11 +2,14 @@
 id: 029
 title: Edycja planu (okazja, motyw) przed generacją obrazków
 type: feat
-status: pending
+status: done
 depends_on: [028]
 touches:
   - src/app/(app)/kalendarz/[id]/plan/plan-table.tsx
   - src/app/(app)/kalendarz/[id]/plan/actions.ts
+  - src/app/(app)/kalendarz/[id]/plan/page.tsx
+  - tasks/verify/029.sh
+  - tests/task-029/update-days.test.ts
 ---
 
 ## Cel
