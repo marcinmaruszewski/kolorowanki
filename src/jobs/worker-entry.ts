@@ -1,9 +1,8 @@
-// Worker entrypoint — imports and starts all BullMQ workers.
-// Actual worker implementations are added in tasks 021-023.
+import { researchWorker } from './research-worker'
 
 console.log('Worker entrypoint started, awaiting jobs…')
 
-const workers: { close: () => Promise<void> }[] = []
+const workers: { close: () => Promise<void> }[] = [researchWorker]
 
 async function gracefulShutdown() {
   console.log('SIGTERM received, shutting down workers…')

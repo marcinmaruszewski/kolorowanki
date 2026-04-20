@@ -2,11 +2,13 @@
 id: 021
 title: Worker researchu — submit batch, poll, zapisz days
 type: feat
-status: pending
+status: done
 depends_on: [012, 013, 016, 018, 020]
 touches:
   - src/jobs/research-worker.ts
   - src/jobs/worker-entry.ts
+  - src/jobs/__tests__/research-worker.test.ts
+  - tasks/verify/021.sh
 ---
 
 ## Cel
