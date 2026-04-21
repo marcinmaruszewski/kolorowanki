@@ -547,7 +547,6 @@ while :; do
   output="$(<"$tmp_output")"
 
   if contains_approval_request "$output" || looks_like_permission_prompt "$output"; then
-    local approval_output_file last_tool approval_evidence
     approval_output_file="$(capture_approval_output "$tmp_output" "$attempt_count")"
     last_tool="$(extract_last_tool_use "$tmp_output")"
     approval_evidence="$(extract_permission_evidence "$tmp_output")"
