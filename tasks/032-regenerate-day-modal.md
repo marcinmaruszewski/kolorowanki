@@ -2,11 +2,15 @@
 id: 032
 title: Modal regeneracji pojedynczego dnia (prompt override)
 type: feat
-status: pending
+status: done
 depends_on: [023, 031]
 touches:
   - src/app/(app)/kalendarz/[id]/obrazki/regenerate-modal.tsx
   - src/app/(app)/kalendarz/[id]/obrazki/actions.ts
+  - src/app/(app)/kalendarz/[id]/obrazki/day-tile.tsx
+  - src/styles/globals.css
+  - tasks/verify/032.sh
+  - tests/task-032/regenerate-day.test.ts
 ---
 
 ## Cel
