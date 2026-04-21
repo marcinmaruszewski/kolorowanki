@@ -147,6 +147,7 @@ W tej iteracji:
 5. Jeśli całość jest zakończona, wypisz dokładnie <promise>${COMPLETION_PROMISE}</promise>.
 6. Jeśli potrzebujesz zgody człowieka, inputu, sekretu albo decyzji produktowej, wypisz dokładnie <approval-request>KRÓTKI POWÓD</approval-request> i zakończ iterację bez czekania na odpowiedź.
 7. Nie zaczynaj drugiego taska ani drugiego większego kroku w tej samej iteracji.
+8. Dla komend shellowych używaj pojedynczych operacji bez separatorów i fallbacków. Nie dopisuj '; echo $?', '&& ...', '|| ...' ani podobnych konstrukcji. Polegaj na kodzie wyjścia toola i naturalnym outputcie komendy.
 EOF
 }
 
@@ -550,9 +551,14 @@ while :; do
     approval_output_file="$(capture_approval_output "$tmp_output" "$attempt_count")"
     last_tool="$(extract_last_tool_use "$tmp_output")"
     approval_evidence="$(extract_permission_evidence "$tmp_output")"
+
+    has_explicit_approval_request=0
+    if contains_approval_request "$output"; then
+      has_explicit_approval_request=1
+    fi
+
     rm -f "$tmp_output"
 
-    log "Wykryto prośbę o zgodę albo approval prompt. Ralph loop zatrzymuje się zamiast wisieć bez końca."
     log "Surowy output iteracji zapisany do: $approval_output_file"
     if [[ -n "$last_tool" ]]; then
       log "Ostatni tool przed stopem: $last_tool"
@@ -564,8 +570,15 @@ while :; do
         log "  $line"
       done <<< "$approval_evidence"
     fi
-    log "Rozwiązanie: poszerz allowlistę w .claude/settings.json albo uruchom z innym --permission-mode dla tego środowiska."
-    exit 2
+
+    if [[ "$has_explicit_approval_request" -eq 1 || "$exit_code" -ne 0 ]]; then
+      log "Wykryto prośbę o zgodę albo approval prompt. Ralph loop zatrzymuje się zamiast wisieć bez końca."
+      log "Rozwiązanie: poszerz allowlistę w .claude/settings.json albo uruchom z innym --permission-mode dla tego środowiska."
+      exit 2
+    fi
+
+    log "Wykryto denied tool / approval prompt w trakcie iteracji, ale run zakończył się exit 0."
+    log "Traktuję to jako recoverable warning i kontynuuję pętlę."
   fi
 
   rm -f "$tmp_output"
