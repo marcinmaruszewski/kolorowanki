@@ -2,11 +2,13 @@
 id: 035
 title: Strona edytora fabric.js (A4 canvas + załadowanie obrazków)
 type: feat
-status: pending
+status: done
 depends_on: [031, 034]
 touches:
   - src/app/(app)/kalendarz/[id]/edytor/page.tsx
   - src/app/(app)/kalendarz/[id]/edytor/fabric-canvas.tsx
+  - package.json
+  - tasks/verify/035.sh
 ---
 
 ## Cel
