@@ -37,7 +37,7 @@ Autogenerowane przez `./scripts/task list` i aktualizowane przez `./scripts/task
 | 031 | Galeria wygenerowanych obrazków (grid 7 kolumn)    | done         | 022, 030   |
 | 032 | Modal regeneracji pojedynczego dnia (prompt overrid | done         | 023, 031   |
 | 033 | Licznik pozostałych regeneracji i ostrzeżenia     | done         | 032        |
-| 034 | Port algorytmu build_slots() z Pythona do TypeScrip | pending      | 002        |
+| 034 | Port algorytmu build_slots() z Pythona do TypeScrip | done         | 002        |
 | 035 | Strona edytora fabric.js (A4 canvas + załadowanie  | pending      | 031, 034   |
 | 036 | Interakcje fabric.js — drag, rotate, scale, dupli | pending      | 035        |
 | 037 | Zapis stanu edytora do DB (calendar.layoutJson)     | pending      | 011, 036   |

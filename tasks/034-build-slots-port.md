@@ -2,11 +2,12 @@
 id: 034
 title: Port algorytmu build_slots() z Pythona do TypeScript
 type: feat
-status: pending
+status: done
 depends_on: [002]
 touches:
   - src/lib/layout/build-slots.ts
   - src/lib/layout/build-slots.test.ts
+  - tasks/verify/034.sh
 ---
 
 ## Cel
