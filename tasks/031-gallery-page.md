@@ -2,11 +2,14 @@
 id: 031
 title: Galeria wygenerowanych obrazków (grid 7 kolumn)
 type: feat
-status: pending
+status: done
 depends_on: [022, 030]
 touches:
   - src/app/(app)/kalendarz/[id]/obrazki/page.tsx
   - src/app/(app)/kalendarz/[id]/obrazki/day-tile.tsx
+  - src/styles/globals.css
+  - tasks/verify/031.sh
+  - tests/task-031/gallery-page.test.ts
 ---
 
 ## Cel
