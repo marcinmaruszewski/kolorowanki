@@ -152,7 +152,7 @@ EOF
 
 looks_like_permission_prompt() {
   local output="$1"
-  grep -Eiq '(requires approval|requires permission|permission required|approval required|do you want to allow|allow this action|cannot continue without approval|permission mode|needs your approval)' <<< "$output"
+  grep -Eiq '(requires approval|requires permission|permission required|approval required|do you want to allow|allow this action|cannot continue without approval|needs your approval)' <<< "$output"
 }
 
 contains_completion_promise() {
@@ -213,6 +213,46 @@ format_stream_json_line() {
   if [[ -n "$rendered" ]]; then
     printf '%s\n' "$rendered"
   fi
+}
+
+capture_approval_output() {
+  local tmp_output="$1"
+  local attempt="$2"
+  local artifact
+
+  artifact="$LOG_DIR/approval-attempt-$(printf '%03d' "$attempt").jsonl"
+  cp "$tmp_output" "$artifact"
+  printf '%s\n' "$artifact"
+}
+
+extract_last_tool_use() {
+  local input_file="$1"
+
+  if ! command -v jq >/dev/null 2>&1; then
+    return 0
+  fi
+
+  jq -r '
+    select(.type == "assistant" and .message.content?)
+    | .message.content[]?
+    | select((.type // "") == "tool_use")
+    | "[tool] " + (.name // "unknown")
+      + (
+        if .input.command? then ": " + .input.command
+        elif .input.file_path? then ": " + .input.file_path
+        elif .input.path? then ": " + .input.path
+        elif .input.pattern? then ": " + .input.pattern
+        elif .input? then ": " + (.input | tojson)
+        else ""
+        end
+      )
+  ' "$input_file" 2>/dev/null | tail -1
+}
+
+extract_permission_evidence() {
+  local input_file="$1"
+
+  grep -Eai '(requires approval|requires permission|permission required|approval required|do you want to allow|allow this action|cannot continue without approval|needs your approval)' "$input_file" | tail -5 || true
 }
 
 run_claude_iteration() {
@@ -505,13 +545,31 @@ while :; do
   log "[$finished_at] Koniec próby #$attempt_count, exit code: $exit_code"
 
   output="$(<"$tmp_output")"
-  rm -f "$tmp_output"
 
   if contains_approval_request "$output" || looks_like_permission_prompt "$output"; then
+    local approval_output_file last_tool approval_evidence
+    approval_output_file="$(capture_approval_output "$tmp_output" "$attempt_count")"
+    last_tool="$(extract_last_tool_use "$tmp_output")"
+    approval_evidence="$(extract_permission_evidence "$tmp_output")"
+    rm -f "$tmp_output"
+
     log "Wykryto prośbę o zgodę albo approval prompt. Ralph loop zatrzymuje się zamiast wisieć bez końca."
+    log "Surowy output iteracji zapisany do: $approval_output_file"
+    if [[ -n "$last_tool" ]]; then
+      log "Ostatni tool przed stopem: $last_tool"
+    fi
+    if [[ -n "$approval_evidence" ]]; then
+      log "Dopasowane linie z outputu:"
+      while IFS= read -r line; do
+        [[ -n "$line" ]] || continue
+        log "  $line"
+      done <<< "$approval_evidence"
+    fi
     log "Rozwiązanie: poszerz allowlistę w .claude/settings.json albo uruchom z innym --permission-mode dla tego środowiska."
     exit 2
   fi
+
+  rm -f "$tmp_output"
 
   if [[ "$exit_code" -eq 0 ]] && contains_completion_promise "$output"; then
     completed_runs=$((completed_runs + 1))
