@@ -2,11 +2,13 @@
 id: 036
 title: Interakcje fabric.js — drag, rotate, scale, duplicate, delete
 type: feat
-status: pending
+status: done
 depends_on: [035]
 touches:
   - src/app/(app)/kalendarz/[id]/edytor/fabric-canvas.tsx
   - src/app/(app)/kalendarz/[id]/edytor/toolbar.tsx
+  - tasks/verify/035.sh
+  - tasks/verify/036.sh
 ---
 
 ## Cel

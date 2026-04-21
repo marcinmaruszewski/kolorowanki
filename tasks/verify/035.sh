@@ -47,7 +47,7 @@ assert_file_contains \
 
 assert_file_contains \
   "src/app/(app)/kalendarz/[id]/edytor/page.tsx" \
-  "status.*generated\|generated.*status" \
+  "status.*generated|generated.*status" \
   "page.tsx: brak sprawdzania statusu generated"
 
 echo "OK: pliki i wzorce"

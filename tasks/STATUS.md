@@ -39,7 +39,7 @@ Autogenerowane przez `./scripts/task list` i aktualizowane przez `./scripts/task
 | 033 | Licznik pozostałych regeneracji i ostrzeżenia     | done         | 032        |
 | 034 | Port algorytmu build_slots() z Pythona do TypeScrip | done         | 002        |
 | 035 | Strona edytora fabric.js (A4 canvas + załadowanie  | done         | 031, 034   |
-| 036 | Interakcje fabric.js — drag, rotate, scale, dupli | pending      | 035        |
+| 036 | Interakcje fabric.js — drag, rotate, scale, dupli | done         | 035        |
 | 037 | Zapis stanu edytora do DB (calendar.layoutJson)     | pending      | 011, 036   |
 | 038 | Trigger eksportu PDF z edytora                      | pending      | 037        |
 | 039 | Renderer PDF (pdf-lib) z layoutJson                 | pending      | 034, 037   |
