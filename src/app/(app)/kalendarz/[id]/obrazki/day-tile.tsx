@@ -7,9 +7,10 @@ import { RegenerateModal } from './regenerate-modal'
 
 interface Props {
   day: Day
+  regenDisabled?: boolean
 }
 
-export function DayTile({ day }: Props) {
+export function DayTile({ day, regenDisabled = false }: Props) {
   const media = typeof day.image === 'object' && day.image !== null ? (day.image as Media) : null
   const isGenerated = day.status === 'generated' && media?.url
   const [showModal, setShowModal] = useState(false)
@@ -39,9 +40,15 @@ export function DayTile({ day }: Props) {
         )}
         <button
           className="day-tile-regen"
-          disabled={!isGenerated}
+          disabled={!isGenerated || regenDisabled}
           onClick={() => setShowModal(true)}
-          title={isGenerated ? 'Regeneruj ten dzień' : 'Czeka na wygenerowanie'}
+          title={
+            !isGenerated
+              ? 'Czeka na wygenerowanie'
+              : regenDisabled
+                ? 'Wykorzystano limit 20 regeneracji'
+                : 'Regeneruj ten dzień'
+          }
         >
           Regeneruj
         </button>

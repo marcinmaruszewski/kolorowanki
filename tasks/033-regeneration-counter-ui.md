@@ -2,11 +2,16 @@
 id: 033
 title: Licznik pozostałych regeneracji i ostrzeżenia
 type: feat
-status: pending
+status: done
 depends_on: [032]
 touches:
   - src/app/(app)/kalendarz/[id]/obrazki/page.tsx
   - src/app/(app)/kalendarz/[id]/obrazki/regenerate-counter.tsx
+  - src/app/(app)/kalendarz/[id]/obrazki/day-tile.tsx
+  - src/lib/quota/regenerations.ts
+  - src/styles/globals.css
+  - tasks/verify/033.sh
+  - tests/task-033/regeneration-counter.test.ts
 ---
 
 ## Cel

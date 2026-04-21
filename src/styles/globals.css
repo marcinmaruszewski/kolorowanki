@@ -312,6 +312,16 @@ a {
 }
 
 /* gallery */
+.regen-counter {
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  color: #374151;
+}
+.regen-counter-exhausted {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
 .gallery-pending-hint {
   margin-bottom: 1rem;
   color: #6b7280;

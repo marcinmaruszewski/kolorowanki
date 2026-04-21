@@ -5,6 +5,8 @@ import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { getCurrentUser } from '@/lib/auth/current-user'
 import { DayTile } from './day-tile'
+import { RegenerateCounter } from './regenerate-counter'
+import { countRegenerationsUsed } from '@/lib/quota/regenerations'
 import type { Day } from '@/payload-types'
 
 interface Props {
@@ -43,6 +45,9 @@ export default async function GalleryPage({ params }: Props) {
   const anyPending = days.some((d) => d.status !== 'generated')
   const allGenerated = days.length > 0 && !anyPending
 
+  const regenerationsUsed = await countRegenerationsUsed(calendar.id)
+  const regenDisabled = regenerationsUsed >= 20
+
   // Compute leading empty cells: JS getDay() 0=Sun, convert to Mon=0
   const jsDay = new Date(calendar.year, calendar.month - 1, 1).getDay()
   const leadingCells = jsDay === 0 ? 6 : jsDay - 1
@@ -67,6 +72,8 @@ export default async function GalleryPage({ params }: Props) {
         </div>
       </div>
 
+      <RegenerateCounter used={regenerationsUsed} />
+
       {anyPending && (
         <p className="gallery-pending-hint">
           Generowanie w toku… Strona odświeży się automatycznie co 10 sekund.
@@ -88,7 +95,7 @@ export default async function GalleryPage({ params }: Props) {
 
         {/* day tiles */}
         {(days as Day[]).map((day) => (
-          <DayTile key={day.id} day={day} />
+          <DayTile key={day.id} day={day} regenDisabled={regenDisabled} />
         ))}
       </div>
     </main>
