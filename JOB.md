@@ -18,3 +18,4 @@ Zakończ: ./scripts/task done <id> — flipuje status, stage'uje touches + pnpm-
 Hard rules (patrz docs/AGENTS.md i docs/TESTING.md): wszystko w Dockerze (`docker compose run` / `exec` / `up`), po polsku (UI + komentarze dla usera), model OpenAI to gpt-5.4 (text) i gpt-image-1.5 (images) — trzymane w env. Nie commituj sekretów. Zawsze zamykaj task przez ./scripts/task done.
 Zaczynaj od taska wskazanego przez usera albo z bieżącego kontekstu sesji. `Task 001` był historycznym bootstrapem repo i nie jest domyślnym punktem startu dla każdego nowego agenta.
 Jeśli coś jest niejasne — pytaj Marcina (pisze po polsku). Gdy task tego wymaga, weryfikuj aktualny stan zewnętrznych API (np. modele OpenAI) zamiast polegać na ustaleniach sprzed dni.
+Staraj się nie używać poleceń bash, do których i tak nie masz dostępu. Używaj tylko tych, których możesz. Jeżeli czegoś faktycznie potrzebujesz, to uargumentuj to.
