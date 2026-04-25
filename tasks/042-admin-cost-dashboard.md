@@ -2,11 +2,13 @@
 id: 042
 title: Admin dashboard kosztów OpenAI
 type: feat
-status: pending
+status: done
 depends_on: [013]
 touches:
   - src/app/(payload)/admin/components/CostDashboard.tsx
-  - src/collections/Calendars.ts
+  - src/payload.config.ts
+  - src/app/(payload)/admin/importMap.ts
+  - tasks/verify/042.sh
 ---
 
 ## Cel

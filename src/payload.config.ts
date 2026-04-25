@@ -15,6 +15,18 @@ const __dirname = path.dirname(__filename)
 
 export default buildConfig({
   secret: process.env.PAYLOAD_SECRET ?? '',
+  admin: {
+    components: {
+      views: {
+        CostDashboard: {
+          Component: '@/app/(payload)/admin/components/CostDashboard#CostDashboard',
+          path: '/koszty',
+          exact: true,
+          meta: { title: 'Koszty OpenAI' },
+        },
+      },
+    },
+  },
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URL,

@@ -45,7 +45,7 @@ Autogenerowane przez `./scripts/task list` i aktualizowane przez `./scripts/task
 | 039 | Renderer PDF (pdf-lib) z layoutJson                 | done         | 034, 037   |
 | 040 | Strona pobrania PDF + API route                     | done         | 039        |
 | 041 | Worker kolejki PDF (renderuje + zapisuje media)     | done         | 020, 039   |
-| 042 | Admin dashboard kosztów OpenAI                     | pending      | 013        |
+| 042 | Admin dashboard kosztów OpenAI                     | done         | 013        |
 | 043 | BullBoard — UI do monitorowania kolejek BullMQ    | pending      | 019        |
 | 044 | Promowanie usera do roli admin (CLI script)         | pending      | 006        |
 | 045 | Production Dockerfile (multi-stage, next build)     | pending      | 004        |
