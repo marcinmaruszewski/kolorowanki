@@ -2,11 +2,13 @@
 id: 039
 title: Renderer PDF (pdf-lib) z layoutJson
 type: feat
-status: pending
+status: done
 depends_on: [034, 037]
 touches:
   - src/lib/pdf/render-calendar.ts
   - src/lib/pdf/render-calendar.test.ts
+  - package.json
+  - tasks/verify/039.sh
 ---
 
 ## Cel

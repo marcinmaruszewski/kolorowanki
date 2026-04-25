@@ -42,7 +42,7 @@ Autogenerowane przez `./scripts/task list` i aktualizowane przez `./scripts/task
 | 036 | Interakcje fabric.js — drag, rotate, scale, dupli | done         | 035        |
 | 037 | Zapis stanu edytora do DB (calendar.layoutJson)     | done         | 011, 036   |
 | 038 | Trigger eksportu PDF z edytora                      | done         | 037        |
-| 039 | Renderer PDF (pdf-lib) z layoutJson                 | pending      | 034, 037   |
+| 039 | Renderer PDF (pdf-lib) z layoutJson                 | done         | 034, 037   |
 | 040 | Strona pobrania PDF + API route                     | pending      | 039        |
 | 041 | Worker kolejki PDF (renderuje + zapisuje media)     | pending      | 020, 039   |
 | 042 | Admin dashboard kosztów OpenAI                     | pending      | 013        |
