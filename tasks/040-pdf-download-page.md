@@ -2,7 +2,7 @@
 id: 040
 title: Strona pobrania PDF + API route
 type: feat
-status: pending
+status: done
 depends_on: [039]
 touches:
   - src/app/(app)/kalendarz/[id]/pobierz/page.tsx

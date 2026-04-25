@@ -75,6 +75,11 @@ export const Calendars: CollectionConfig = {
       type: 'json',
     },
     {
+      name: 'pdfFile',
+      type: 'relationship',
+      relationTo: 'media',
+    },
+    {
       name: 'label',
       type: 'text',
       admin: {

@@ -43,7 +43,7 @@ Autogenerowane przez `./scripts/task list` i aktualizowane przez `./scripts/task
 | 037 | Zapis stanu edytora do DB (calendar.layoutJson)     | done         | 011, 036   |
 | 038 | Trigger eksportu PDF z edytora                      | done         | 037        |
 | 039 | Renderer PDF (pdf-lib) z layoutJson                 | done         | 034, 037   |
-| 040 | Strona pobrania PDF + API route                     | pending      | 039        |
+| 040 | Strona pobrania PDF + API route                     | done         | 039        |
 | 041 | Worker kolejki PDF (renderuje + zapisuje media)     | pending      | 020, 039   |
 | 042 | Admin dashboard kosztów OpenAI                     | pending      | 013        |
 | 043 | BullBoard — UI do monitorowania kolejek BullMQ    | pending      | 019        |
