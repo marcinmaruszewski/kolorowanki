@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { buildSlots } from '@/lib/layout/build-slots'
 import type { Day, Media } from '@/payload-types'
 import { Toolbar } from './toolbar'
+import { saveLayout } from './actions'
 
 // A4 dimensions in PDF points (1 pt = 1/72 inch): 210mm × 297mm
 const PAGE_W = 595
@@ -24,9 +25,10 @@ function hashString(str: string): number {
 interface Props {
   days: Day[]
   daysInMonth: number
+  initialLayout?: Record<string, unknown> | null
 }
 
-export function FabricCanvas({ days, daysInMonth }: Props) {
+export function FabricCanvas({ days, daysInMonth, initialLayout }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const fabricRef = useRef<import('fabric').Canvas | null>(null)
@@ -34,10 +36,11 @@ export function FabricCanvas({ days, daysInMonth }: Props) {
   const undoStack = useRef<string[]>([])
   const undoIdx = useRef(-1)
   const [undoState, setUndoState] = useState({ canUndo: false, canRedo: false })
+  const [isSaving, setIsSaving] = useState(false)
 
   const params = useParams()
-  const calendarId = String(params?.id ?? '')
-  const stableSeed = hashString(calendarId)
+  const calendarId = Number(params?.id ?? 0)
+  const stableSeed = hashString(String(params?.id ?? ''))
 
   useEffect(() => {
     daysRef.current = days
@@ -123,7 +126,13 @@ export function FabricCanvas({ days, daysInMonth }: Props) {
       // Zapisz stan po każdej modyfikacji obiektu
       fc.on('object:modified', pushState)
 
-      await applySlots(stableSeed)
+      if (initialLayout) {
+        await fc.loadFromJSON(initialLayout)
+        fc.renderAll()
+        pushState()
+      } else {
+        await applySlots(stableSeed)
+      }
     }
 
     init()
@@ -169,6 +178,18 @@ export function FabricCanvas({ days, daysInMonth }: Props) {
     })
   }, [])
 
+  const handleSave = useCallback(async () => {
+    const fc = fabricRef.current
+    if (!fc || !calendarId) return
+    setIsSaving(true)
+    try {
+      const layout = fc.toJSON() as Record<string, unknown>
+      await saveLayout(calendarId, layout)
+    } finally {
+      setIsSaving(false)
+    }
+  }, [calendarId])
+
   return (
     <div>
       <Toolbar
@@ -176,8 +197,10 @@ export function FabricCanvas({ days, daysInMonth }: Props) {
         onReset={handleReset}
         onUndo={handleUndo}
         onRedo={handleRedo}
+        onSave={handleSave}
         canUndo={undoState.canUndo}
         canRedo={undoState.canRedo}
+        isSaving={isSaving}
       />
       <div ref={containerRef} className="fabric-editor-container">
         <canvas ref={canvasRef} id="fabric-canvas" />

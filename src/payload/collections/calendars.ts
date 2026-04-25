@@ -71,6 +71,10 @@ export const Calendars: CollectionConfig = {
       type: 'textarea',
     },
     {
+      name: 'layoutJson',
+      type: 'json',
+    },
+    {
       name: 'label',
       type: 'text',
       admin: {

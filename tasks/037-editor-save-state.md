@@ -2,12 +2,17 @@
 id: 037
 title: Zapis stanu edytora do DB (calendar.layoutJson)
 type: feat
-status: pending
+status: done
 depends_on: [011, 036]
 touches:
-  - src/collections/Calendars.ts
+  - src/payload/collections/calendars.ts
+  - src/payload-types.ts
   - src/app/(app)/kalendarz/[id]/edytor/actions.ts
   - src/app/(app)/kalendarz/[id]/edytor/fabric-canvas.tsx
+  - src/app/(app)/kalendarz/[id]/edytor/toolbar.tsx
+  - src/app/(app)/kalendarz/[id]/edytor/page.tsx
+  - tasks/verify/037.sh
+  - tests/task-037/save-layout.test.ts
 ---
 
 ## Cel

@@ -7,11 +7,13 @@ interface Props {
   onReset: () => void
   onUndo: () => void
   onRedo: () => void
+  onSave: () => void
   canUndo: boolean
   canRedo: boolean
+  isSaving: boolean
 }
 
-export function Toolbar({ onShuffle, onReset, onUndo, onRedo, canUndo, canRedo }: Props) {
+export function Toolbar({ onShuffle, onReset, onUndo, onRedo, onSave, canUndo, canRedo, isSaving }: Props) {
   return (
     <div className="editor-toolbar">
       <button onClick={onShuffle}>Przetasuj</button>
@@ -21,6 +23,9 @@ export function Toolbar({ onShuffle, onReset, onUndo, onRedo, canUndo, canRedo }
       </button>
       <button onClick={onRedo} disabled={!canRedo}>
         Ponów
+      </button>
+      <button onClick={onSave} disabled={isSaving}>
+        {isSaving ? 'Zapisywanie…' : 'Zapisz'}
       </button>
     </div>
   )

@@ -176,6 +176,15 @@ export interface Calendar {
   status: 'draft' | 'planned' | 'plan_accepted' | 'generated' | 'composed' | 'exported';
   seriesDirection?: string | null;
   planMd?: string | null;
+  layoutJson?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   label?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -466,6 +475,7 @@ export interface CalendarsSelect<T extends boolean = true> {
   status?: T;
   seriesDirection?: T;
   planMd?: T;
+  layoutJson?: T;
   label?: T;
   updatedAt?: T;
   createdAt?: T;

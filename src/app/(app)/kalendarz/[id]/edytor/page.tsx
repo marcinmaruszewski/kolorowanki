@@ -30,7 +30,9 @@ export default async function EditorPage({ params }: Props) {
   const ownerId = typeof calendar.owner === 'object' ? calendar.owner.id : calendar.owner
   if (ownerId !== user.id && user.role !== 'admin') notFound()
 
-  if (calendar.status !== 'generated') redirect(`/kalendarz/${id}/obrazki`)
+  if (!['generated', 'composed'].includes(calendar.status)) {
+    redirect(`/kalendarz/${id}/obrazki`)
+  }
 
   const { docs: days } = await payload.find({
     collection: 'days',
@@ -45,6 +47,8 @@ export default async function EditorPage({ params }: Props) {
     (d) => d.status === 'generated' && d.image && (d.image as Media).url,
   )
 
+  const initialLayout = (calendar.layoutJson as Record<string, unknown> | null | undefined) ?? null
+
   return (
     <main className="page-content">
       <div className="page-header">
@@ -52,7 +56,11 @@ export default async function EditorPage({ params }: Props) {
           Edytor — {calendar.month}/{calendar.year}
         </h1>
       </div>
-      <FabricCanvas days={daysWithImages as Day[]} daysInMonth={days.length} />
+      <FabricCanvas
+        days={daysWithImages as Day[]}
+        daysInMonth={days.length}
+        initialLayout={initialLayout}
+      />
     </main>
   )
 }
