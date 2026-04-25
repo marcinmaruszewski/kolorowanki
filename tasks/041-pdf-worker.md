@@ -2,11 +2,13 @@
 id: 041
 title: Worker kolejki PDF (renderuje + zapisuje media)
 type: feat
-status: pending
+status: done
 depends_on: [020, 039]
 touches:
   - src/jobs/pdf-worker.ts
   - src/jobs/worker-entry.ts
+  - src/jobs/__tests__/pdf-worker.test.ts
+  - tasks/verify/041.sh
 ---
 
 ## Cel
