@@ -1,11 +1,11 @@
 'use client'
 
 import React, { useEffect, useRef, useState, useCallback } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { buildSlots } from '@/lib/layout/build-slots'
 import type { Day, Media } from '@/payload-types'
 import { Toolbar } from './toolbar'
-import { saveLayout } from './actions'
+import { saveLayout, exportPdf } from './actions'
 
 // A4 dimensions in PDF points (1 pt = 1/72 inch): 210mm × 297mm
 const PAGE_W = 595
@@ -37,8 +37,10 @@ export function FabricCanvas({ days, daysInMonth, initialLayout }: Props) {
   const undoIdx = useRef(-1)
   const [undoState, setUndoState] = useState({ canUndo: false, canRedo: false })
   const [isSaving, setIsSaving] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
 
   const params = useParams()
+  const router = useRouter()
   const calendarId = Number(params?.id ?? 0)
   const stableSeed = hashString(String(params?.id ?? ''))
 
@@ -190,6 +192,19 @@ export function FabricCanvas({ days, daysInMonth, initialLayout }: Props) {
     }
   }, [calendarId])
 
+  const handleExportPdf = useCallback(async () => {
+    const fc = fabricRef.current
+    if (!fc || !calendarId) return
+    setIsExporting(true)
+    try {
+      const layout = fc.toJSON() as Record<string, unknown>
+      const { jobId } = await exportPdf(calendarId, layout)
+      router.push(`/kalendarz/${calendarId}/pobierz?job=${jobId}`)
+    } finally {
+      setIsExporting(false)
+    }
+  }, [calendarId, router])
+
   return (
     <div>
       <Toolbar
@@ -198,9 +213,11 @@ export function FabricCanvas({ days, daysInMonth, initialLayout }: Props) {
         onUndo={handleUndo}
         onRedo={handleRedo}
         onSave={handleSave}
+        onExportPdf={handleExportPdf}
         canUndo={undoState.canUndo}
         canRedo={undoState.canRedo}
         isSaving={isSaving}
+        isExporting={isExporting}
       />
       <div ref={containerRef} className="fabric-editor-container">
         <canvas ref={canvasRef} id="fabric-canvas" />

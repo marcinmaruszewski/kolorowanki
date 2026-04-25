@@ -8,12 +8,14 @@ interface Props {
   onUndo: () => void
   onRedo: () => void
   onSave: () => void
+  onExportPdf: () => void
   canUndo: boolean
   canRedo: boolean
   isSaving: boolean
+  isExporting: boolean
 }
 
-export function Toolbar({ onShuffle, onReset, onUndo, onRedo, onSave, canUndo, canRedo, isSaving }: Props) {
+export function Toolbar({ onShuffle, onReset, onUndo, onRedo, onSave, onExportPdf, canUndo, canRedo, isSaving, isExporting }: Props) {
   return (
     <div className="editor-toolbar">
       <button onClick={onShuffle}>Przetasuj</button>
@@ -26,6 +28,9 @@ export function Toolbar({ onShuffle, onReset, onUndo, onRedo, onSave, canUndo, c
       </button>
       <button onClick={onSave} disabled={isSaving}>
         {isSaving ? 'Zapisywanie…' : 'Zapisz'}
+      </button>
+      <button onClick={onExportPdf} disabled={isExporting || isSaving}>
+        {isExporting ? 'Przygotowywanie…' : 'Pobierz PDF'}
       </button>
     </div>
   )

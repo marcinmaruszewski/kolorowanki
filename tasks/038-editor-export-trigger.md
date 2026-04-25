@@ -2,11 +2,14 @@
 id: 038
 title: Trigger eksportu PDF z edytora
 type: feat
-status: pending
+status: done
 depends_on: [037]
 touches:
   - src/app/(app)/kalendarz/[id]/edytor/actions.ts
   - src/app/(app)/kalendarz/[id]/edytor/fabric-canvas.tsx
+  - src/app/(app)/kalendarz/[id]/edytor/toolbar.tsx
+  - tasks/verify/038.sh
+  - tests/task-038/export-pdf.test.ts
 ---
 
 ## Cel
