@@ -2,11 +2,12 @@
 id: 047
 title: docker-compose.prod.yml dla Dokploy
 type: chore
-status: pending
+status: done
 depends_on: [045, 046]
 touches:
   - docker-compose.prod.yml
   - .env.production.example
+  - tasks/verify/047.sh
 ---
 
 ## Cel
