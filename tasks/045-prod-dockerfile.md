@@ -2,11 +2,14 @@
 id: 045
 title: Production Dockerfile (multi-stage, next build)
 type: chore
-status: pending
+status: done
 depends_on: [004]
 touches:
   - Dockerfile.prod
   - .dockerignore
+  - next.config.mjs
+  - tasks/verify/045.sh
+  - public/.gitkeep
 ---
 
 ## Cel
