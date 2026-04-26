@@ -2,7 +2,7 @@
 id: 043
 title: BullBoard — UI do monitorowania kolejek BullMQ
 type: feat
-status: pending
+status: done
 depends_on: [019]
 touches:
   - src/app/(payload)/admin/queues/[[...slug]]/route.ts

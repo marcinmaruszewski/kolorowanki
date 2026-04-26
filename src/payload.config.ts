@@ -17,6 +17,9 @@ export default buildConfig({
   secret: process.env.PAYLOAD_SECRET ?? '',
   admin: {
     components: {
+      afterNavLinks: [
+        '@/app/(payload)/admin/components/QueuesNavLink#QueuesNavLink',
+      ],
       views: {
         CostDashboard: {
           Component: '@/app/(payload)/admin/components/CostDashboard#CostDashboard',
