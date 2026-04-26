@@ -2,10 +2,11 @@
 id: 046
 title: Production Dockerfile dla workera
 type: chore
-status: pending
+status: done
 depends_on: [020, 045]
 touches:
   - Dockerfile.worker
+  - tasks/verify/046.sh
 ---
 
 ## Cel
