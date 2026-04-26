@@ -102,6 +102,16 @@ Konsekwencja: `pnpm-lock.yaml` powstaje w kontenerze przy pierwszym `pnpm instal
 - Nie dokładaj do nowych verify-skryptów lokalnych flow opartych o `curl`, ręczne cookie-jary, `wait`, PID-y albo polling HTTP, jeśli ten sam dowód da się zrobić przez `vitest` lub `agent-browser`.
 - Jeśli verify pasuje do istniejącego wzorca, użyj helperów z `tasks/verify/_helpers.sh` zamiast ręcznie składać boilerplate `docker compose`.
 
+## Promowanie admin
+
+Aby nadać użytkownikowi rolę `admin` (np. po pierwszym logowaniu przez Google):
+
+```bash
+docker compose exec app tsx scripts/promote-admin.ts --email=kontakt@marcinmaruszewski.me
+```
+
+Skrypt ładuje Payload, aktualizuje pole `role` w kolekcji `users` i wypisuje potwierdzenie. Wymaga działającego kontenera `app` z dostępem do bazy.
+
 ## Auth w testach (dev-login backdoor)
 
 Logowanie Google w testach jest niemożliwe (wymaga interakcji użytkownika + hasła). Mamy dedykowany **dev-login endpoint** `POST /api/auth/dev-login`, dostępny tylko gdy `ENABLE_DEV_LOGIN=true` w env (domyślnie tak w `.env.example` dla dev, nieustawione w prod Dokploy). Pozwala on zalogować się jako dowolny istniejący user bez Google OAuth.

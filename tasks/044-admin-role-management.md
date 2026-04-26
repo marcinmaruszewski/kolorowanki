@@ -2,11 +2,13 @@
 id: 044
 title: Promowanie usera do roli admin (CLI script)
 type: feat
-status: pending
+status: done
 depends_on: [006]
 touches:
   - scripts/promote-admin.ts
   - docs/AGENTS.md
+  - tasks/verify/044.sh
+  - tests/task-044/promote-admin-args.test.ts
 ---
 
 ## Cel

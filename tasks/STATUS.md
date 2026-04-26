@@ -47,7 +47,7 @@ Autogenerowane przez `./scripts/task list` i aktualizowane przez `./scripts/task
 | 041 | Worker kolejki PDF (renderuje + zapisuje media)     | done         | 020, 039   |
 | 042 | Admin dashboard kosztów OpenAI                     | done         | 013        |
 | 043 | BullBoard — UI do monitorowania kolejek BullMQ    | done         | 019        |
-| 044 | Promowanie usera do roli admin (CLI script)         | pending      | 006        |
+| 044 | Promowanie usera do roli admin (CLI script)         | done         | 006        |
 | 045 | Production Dockerfile (multi-stage, next build)     | pending      | 004        |
 | 046 | Production Dockerfile dla workera                   | pending      | 020, 045   |
 | 047 | docker-compose.prod.yml dla Dokploy                 | pending      | 045, 046   |
