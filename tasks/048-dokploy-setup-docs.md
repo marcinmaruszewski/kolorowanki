@@ -2,10 +2,11 @@
 id: 048
 title: Dokumentacja deploy na Dokploy
 type: docs
-status: pending
+status: done
 depends_on: [047]
 touches:
   - docs/DEPLOY.md
+  - tasks/verify/048.sh
 ---
 
 ## Cel

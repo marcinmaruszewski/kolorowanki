@@ -51,6 +51,6 @@ Autogenerowane przez `./scripts/task list` i aktualizowane przez `./scripts/task
 | 045 | Production Dockerfile (multi-stage, next build)     | done         | 004        |
 | 046 | Production Dockerfile dla workera                   | done         | 020, 045   |
 | 047 | docker-compose.prod.yml dla Dokploy                 | done         | 045, 046   |
-| 048 | Dokumentacja deploy na Dokploy                      | pending      | 047        |
+| 048 | Dokumentacja deploy na Dokploy                      | done         | 047        |
 | 049 | Skrypt smoke test produkcji (curl + login)          | pending      | 047        |
 | 050 | Checklist gotowości produkcyjnej                   | pending      | 001, 048, 049 |
