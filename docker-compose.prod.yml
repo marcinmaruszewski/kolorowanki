@@ -34,7 +34,17 @@ services:
       - "3000:3000"
     volumes:
       - media:/app/media
-    env_file: .env.production
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - NEXT_PUBLIC_SERVER_URL=${NEXT_PUBLIC_SERVER_URL}
+      - PAYLOAD_SECRET=${PAYLOAD_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_TEXT_MODEL=${OPENAI_TEXT_MODEL}
+      - OPENAI_IMAGE_MODEL=${OPENAI_IMAGE_MODEL}
     depends_on:
       postgres:
         condition: service_healthy
@@ -48,7 +58,13 @@ services:
       dockerfile: Dockerfile.worker
     volumes:
       - media:/app/media
-    env_file: .env.production
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - PAYLOAD_SECRET=${PAYLOAD_SECRET}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_TEXT_MODEL=${OPENAI_TEXT_MODEL}
+      - OPENAI_IMAGE_MODEL=${OPENAI_IMAGE_MODEL}
     depends_on:
       postgres:
         condition: service_healthy

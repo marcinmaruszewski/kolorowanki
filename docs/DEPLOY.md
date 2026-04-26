@@ -33,7 +33,7 @@ Zakłada, że masz działający serwer z zainstalowanym Dokploy (https://docs.do
 
 ## 3. Zmienne środowiskowe (ENV)
 
-W zakładce **Environment** wklej zawartość `.env.production.example` i uzupełnij wartości:
+W zakładce **Environment** wklej zmienne i uzupełnij wartości (Dokploy zapisuje je do `.env` — `docker-compose.prod.yml` odczytuje je przez `${VAR}`):
 
 ```
 POSTGRES_USER=kalendarz
