@@ -53,4 +53,4 @@ Autogenerowane przez `./scripts/task list` i aktualizowane przez `./scripts/task
 | 047 | docker-compose.prod.yml dla Dokploy                 | done         | 045, 046   |
 | 048 | Dokumentacja deploy na Dokploy                      | done         | 047        |
 | 049 | Skrypt smoke test produkcji (curl + login)          | done         | 047        |
-| 050 | Checklist gotowości produkcyjnej                   | pending      | 001, 048, 049 |
+| 050 | Checklist gotowości produkcyjnej                   | done         | 001, 048, 049 |

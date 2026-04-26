@@ -2,10 +2,11 @@
 id: 050
 title: Checklist gotowości produkcyjnej
 type: docs
-status: pending
+status: done
 depends_on: [001, 048, 049]
 touches:
   - docs/PRODUCTION_CHECKLIST.md
+  - tasks/verify/050.sh
 ---
 
 ## Cel
