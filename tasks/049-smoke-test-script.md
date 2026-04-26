@@ -2,10 +2,11 @@
 id: 049
 title: Skrypt smoke test produkcji (curl + login)
 type: chore
-status: pending
+status: done
 depends_on: [047]
 touches:
   - scripts/smoke-prod.sh
+  - tasks/verify/049.sh
 ---
 
 ## Cel
